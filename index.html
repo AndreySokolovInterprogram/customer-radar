@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Клиентский Радар</title>
+<meta name="description" content="Живая витрина данных NCA-RS: сообщества, посты и профили пользователей по четырём предметным областям исследования.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #ECEFF3;
+    --ink: #10152A;
+    --ink-2: #3C4457;
+    --muted: #6B7386;
+    --line: rgba(16, 21, 42, 0.10);
+    --accent: #B9791E;
+    --accent-fill: #E8A33D;
+    --accent-soft: rgba(232, 163, 61, 0.14);
+    --teal: #1D7F73;
+    --teal-soft: rgba(29, 127, 115, 0.12);
+    --shadow: 0 1px 2px rgba(16, 21, 42, 0.04), 0 8px 24px rgba(16, 21, 42, 0.06);
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0C0F1A;
+      --surface: #131728;
+      --surface-2: #1D2236;
+      --ink: #EEF0F5;
+      --ink-2: #C4C9D6;
+      --muted: #8890A3;
+      --line: rgba(238, 240, 245, 0.12);
+      --accent: #F0B559;
+      --accent-fill: #F0B559;
+      --accent-soft: rgba(240, 181, 89, 0.16);
+      --teal: #3FBBA8;
+      --teal-soft: rgba(63, 187, 168, 0.16);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0C0F1A;
+    --surface: #131728;
+    --surface-2: #1D2236;
+    --ink: #EEF0F5;
+    --ink-2: #C4C9D6;
+    --muted: #8890A3;
+    --line: rgba(238, 240, 245, 0.12);
+    --accent: #F0B559;
+    --accent-fill: #F0B559;
+    --accent-soft: rgba(240, 181, 89, 0.16);
+    --teal: #3FBBA8;
+    --teal-soft: rgba(63, 187, 168, 0.16);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink-2);
+    font-family: 'Golos Text', 'PT Sans', system-ui, sans-serif;
+    line-height: 1.5;
+  }
+
+  img { max-width: 100%; }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 0 var(--teal-soft);
+    animation: pulse 2.4s ease-out infinite;
+    flex: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse { animation: none; }
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 var(--teal-soft); }
+    70%  { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  .snapshot-pill {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: clamp(30px, 6vw, 42px);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+    margin: 10px 0 10px;
+  }
+
+  .hero p {
+    max-width: 58ch;
+    font-size: 15.5px;
+    color: var(--ink-2);
+  }
+
+  .hero p strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stat .value {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .stat .label {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+
+  .stat .sub {
+    font-size: 11.5px;
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  section h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+    margin: 0 0 3px;
+  }
+
+  section .section-note {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .subjects {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .subject-row {
+    display: grid;
+    grid-template-columns: 168px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .subject-row:last-child { border-bottom: none; }
+
+  .subject-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .subject-track {
+    position: relative;
+    height: 10px;
+    background: var(--surface-2);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .subject-fill {
+    position: absolute;
+    inset: 0;
+    width: var(--w);
+    background: var(--accent-fill);
+    border-radius: 5px;
+  }
+
+  .subject-figures {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    min-width: 118px;
+  }
+
+  .subject-figures .groups {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .subject-figures .meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--muted);
+    padding: 10px 0 14px;
+  }
+
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--accent-fill);
+    flex: none;
+  }
+
+  .funnel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .funnel-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .funnel-track {
+    grid-column: 1 / -1;
+    height: 8px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .funnel-fill {
+    height: 100%;
+    width: var(--w);
+    background: var(--teal);
+    border-radius: 4px;
+  }
+
+  .funnel-name {
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+
+  .funnel-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mvp-note {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+
+  .mvp-note .mark {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 4px 10px;
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .mvp-note p {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--muted);
+    padding-top: 4px;
+  }
+
+  @media (max-width: 480px) {
+    .subject-row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .subject-figures {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="topbar">
+    <span class="kicker"><span class="pulse"></span>Клиентский Радар · MVP</span>
+    <span class="snapshot-pill" id="snapshot-date">снимок данных: 03.09.2026</span>
+  </div>
+
+  <div class="hero">
+    <h1>Живой срез базы малого бизнеса ВК</h1>
+    <p>
+      Ранняя версия витрины поверх системы сбора данных для NCA&#8209;RS — рекомендательной
+      системы привлечения новых клиентов. Ниже — реальные цифры прямо из базы:
+      <strong>17&nbsp;336</strong> целевых сообществ в четырёх предметных областях,
+      их посты и участники с полностью собранным профилем.
+    </p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="value">17 336</div>
+      <div class="label">сообществ в целевой выборке</div>
+    </div>
+    <div class="stat">
+      <div class="value">1 345 954</div>
+      <div class="label">постов собрано</div>
+      <div class="sub">99,3% сообществ</div>
+    </div>
+    <div class="stat">
+      <div class="value">755 359</div>
+      <div class="label">пользователей с демографией</div>
+    </div>
+    <div class="stat">
+      <div class="value">35 198</div>
+      <div class="label">с полным профилем — демография + подписки + посты</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Сообщества по предметным областям</h2>
+    <p class="section-note">Классификация по 4 областям статьи. Сумма превышает 17&nbsp;336 — часть сообществ отнесена сразу к нескольким областям.</p>
+    <div class="subjects">
+      <div class="subject-row">
+        <span class="subject-name">Доставка еды</span>
+        <div class="subject-track"><div class="subject-fill" style="--w: 100%"></div></div>
+        <div class="subject-figures">
+          <span class="groups">7 100 групп</span>
+          <span class="meta">592 656 постов · 99,5%</span>
+        </div>
+      </div>
+      <div class="subject-row">
+        <span class="subject-name">Общепит и кафе</span>
+        <div class="subject-track"><div class="subject-fill" style="--w: 83%"></div></div>
+        <div class="subject-figures">
+          <span class="groups">5 890 групп</span>
+          <span class="meta">502 225 постов · 99,6%</span>
+        </div>
+      </div>
+      <div class="subject-row">
+        <span class="subject-name">Привлечение клиентов</span>
+        <div class="subject-track"><div class="subject-fill" style="--w: 63%"></div></div>
+        <div class="subject-figures">
+          <span class="groups">4 471 групп</span>
+          <span class="meta">307 676 постов · 99,1%</span>
+        </div>
+      </div>
+      <div class="subject-row">
+        <span class="subject-name">Тендерное сопровождение</span>
+        <div class="subject-track"><div class="subject-fill" style="--w: 19.5%"></div></div>
+        <div class="subject-figures">
+          <span class="groups">1 384 групп</span>
+          <span class="meta">78 518 постов · 98,5%</span>
+        </div>
+      </div>
+      <div class="legend-row"><span class="legend-swatch"></span>ширина полосы — число групп в области</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Воронка по пользователям</h2>
+    <p class="section-note">Демография собирается для всех подряд; подписки и посты со стены — отдельные, более тяжёлые этапы.</p>
+    <div class="funnel">
+      <div class="funnel-row">
+        <span class="funnel-name">Пользователей в базе</span>
+        <span class="funnel-value">1 814 810</span>
+      </div>
+      <div class="funnel-track"><div class="funnel-fill" style="--w: 100%"></div></div>
+
+      <div class="funnel-row">
+        <span class="funnel-name">— с демографией</span>
+        <span class="funnel-value">755 359</span>
+      </div>
+      <div class="funnel-track"><div class="funnel-fill" style="--w: 41.6%"></div></div>
+
+      <div class="funnel-row">
+        <span class="funnel-name">— с подписками на группы</span>
+        <span class="funnel-value">121 559</span>
+      </div>
+      <div class="funnel-track"><div class="funnel-fill" style="--w: 6.7%"></div></div>
+
+      <div class="funnel-row">
+        <span class="funnel-name">— с полным профилем (демография + подписки + посты)</span>
+        <span class="funnel-value">35 198</span>
+      </div>
+      <div class="funnel-track"><div class="funnel-fill" style="--w: 1.9%"></div></div>
+    </div>
+  </section>
+
+  <div class="mvp-note">
+    <span class="mark">MVP</span>
+    <p>
+      Это первая, намеренно простая версия витрины — статичный снимок вместо живого
+      подключения к базе. Дальше: авторизация через VK ID, обновление данных в
+      реальном времени.
+    </p>
+  </div>
+
+  <footer id="app-footer">Клиентский Радар · научно-исследовательский проект NCA&#8209;RS</footer>
+
+</div>
+
+<script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+<script>
+  (function () {
+    if (typeof vkBridge === 'undefined') return;
+    vkBridge.send('VKWebAppInit').then(function () {
+      var footer = document.getElementById('app-footer');
+      if (footer) {
+        footer.textContent += ' · открыто внутри VK';
+      }
+    }).catch(function () {
+      // Открыто вне VK (обычный браузер) — страница остаётся полностью рабочей.
+    });
+  })();
+</script>
+
+</body>
+</html>

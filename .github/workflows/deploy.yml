@@ -1,0 +1,43 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate HTML is well-formed
+        run: python3 -c "import html.parser, sys; p = html.parser.HTMLParser(); p.feed(open('index.html', encoding='utf-8').read())"
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Sync static files
+        run: |
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            index.html \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/public/"
+
+      - name: Write VK secure key (if configured)
+        if: ${{ secrets.VK_SECURE_KEY != '' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "cat > /opt/customer-radar/.env <<'EOF'
+          VK_SECURE_KEY=${{ secrets.VK_SECURE_KEY }}
+          EOF
+          chmod 600 /opt/customer-radar/.env"
+
+      - name: Clean up key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
