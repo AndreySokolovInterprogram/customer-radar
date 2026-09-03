@@ -30,13 +30,14 @@ jobs:
 
       - name: Write VK secure key (if configured)
         if: ${{ secrets.VK_SECURE_KEY != '' }}
+        env:
+          VK_SECURE_KEY: ${{ secrets.VK_SECURE_KEY }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "cat > /opt/customer-radar/.env <<'EOF'
-          VK_SECURE_KEY=${{ secrets.VK_SECURE_KEY }}
-          EOF
-          chmod 600 /opt/customer-radar/.env"
+          printf 'VK_SECURE_KEY=%s\n' "$VK_SECURE_KEY" > vk_secure_key.env
+          scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            vk_secure_key.env \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/.env"
+          rm -f vk_secure_key.env
 
       - name: Clean up key
         if: always()
