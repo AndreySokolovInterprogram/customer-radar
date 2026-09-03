@@ -29,10 +29,13 @@ jobs:
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/public/"
 
       - name: Write VK secure key (if configured)
-        if: ${{ secrets.VK_SECURE_KEY != '' }}
         env:
           VK_SECURE_KEY: ${{ secrets.VK_SECURE_KEY }}
         run: |
+          if [ -z "$VK_SECURE_KEY" ]; then
+            echo "VK_SECURE_KEY not set, skipping"
+            exit 0
+          fi
           printf 'VK_SECURE_KEY=%s\n' "$VK_SECURE_KEY" > vk_secure_key.env
           scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             vk_secure_key.env \
