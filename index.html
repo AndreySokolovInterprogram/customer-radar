@@ -379,6 +379,153 @@
       min-width: 0;
     }
   }
+
+  /* ---- VK user badge ---- */
+  .user-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .user-badge.visible { display: inline-flex; }
+
+  .user-badge img {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  /* ---- explorer (subject + city picker) ---- */
+  .explorer {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .explorer-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field select {
+    width: 100%;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+
+  .explorer-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+  }
+
+  .explorer-summary .mini-stat {
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .explorer-summary .mini-stat .value {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .explorer-summary .mini-stat .label {
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  .top-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .post-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .post-card:hover { border-color: var(--accent-fill); }
+
+  .post-card .post-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  .post-card .post-group { font-weight: 600; color: var(--ink); }
+
+  .post-card .post-text {
+    font-size: 13px;
+    color: var(--ink-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-card .post-engagement {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .explorer-state {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 8px 0;
+  }
+
+  .explorer-state.error { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -387,7 +534,10 @@
 
   <div class="topbar">
     <span class="kicker"><span class="pulse"></span>Клиентский Радар · MVP</span>
-    <span class="snapshot-pill" id="snapshot-date">снимок данных: 03.09.2026</span>
+    <span style="display:flex; align-items:center; gap:10px;">
+      <span class="user-badge" id="user-badge"><img id="user-photo" alt=""><span id="user-name"></span></span>
+      <span class="snapshot-pill" id="snapshot-date">снимок данных: 03.09.2026</span>
+    </span>
   </div>
 
   <div class="hero">
@@ -490,12 +640,41 @@
     </div>
   </section>
 
+  <section>
+    <h2>Разбор по предметной области</h2>
+    <p class="section-note">Выберите область и, при желании, город — покажем сводку и топ-5 постов по вовлечённости (лайки + репосты + комментарии).</p>
+    <div class="explorer">
+      <div class="explorer-controls">
+        <div class="field">
+          <label for="subject-select">Предметная область</label>
+          <select id="subject-select"></select>
+        </div>
+        <div class="field">
+          <label for="city-select">Город</label>
+          <select id="city-select"><option value="">Все города</option></select>
+        </div>
+      </div>
+
+      <div id="explorer-state" class="explorer-state">Загрузка…</div>
+
+      <div id="explorer-results" style="display:none; flex-direction:column; gap:14px;">
+        <div class="explorer-summary">
+          <div class="mini-stat"><span class="value" id="stat-groups">—</span><span class="label">групп</span></div>
+          <div class="mini-stat"><span class="value" id="stat-posts">—</span><span class="label">постов</span></div>
+          <div class="mini-stat"><span class="value" id="stat-likes">—</span><span class="label">лайков всего</span></div>
+          <div class="mini-stat"><span class="value" id="stat-reposts">—</span><span class="label">репостов всего</span></div>
+        </div>
+        <div class="top-posts" id="top-posts"></div>
+      </div>
+    </div>
+  </section>
+
   <div class="mvp-note">
     <span class="mark">MVP</span>
     <p>
-      Это первая, намеренно простая версия витрины — статичный снимок вместо живого
-      подключения к базе. Дальше: авторизация через VK ID, обновление данных в
-      реальном времени.
+      Это первая, намеренно простая версия витрины. Сводка и топ-5 постов выше — уже
+      живые данные (кэш обновляется каждые 15 минут). Дальше: полноценная VK ID
+      авторизация с серверной проверкой подписи и обновление без кэша.
     </p>
   </div>
 
@@ -506,14 +685,147 @@
 <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 <script>
   (function () {
-    if (typeof vkBridge === 'undefined') return;
-    vkBridge.send('VKWebAppInit').then(function () {
-      var footer = document.getElementById('app-footer');
-      if (footer) {
-        footer.textContent += ' · открыто внутри VK';
+    // ---- VK Bridge init + пользователь ----
+    if (typeof vkBridge !== 'undefined') {
+      vkBridge.send('VKWebAppInit').then(function () {
+        var footer = document.getElementById('app-footer');
+        if (footer) footer.textContent += ' · открыто внутри VK';
+        return vkBridge.send('VKWebAppGetUserInfo');
+      }).then(function (user) {
+        if (!user) return;
+        var badge = document.getElementById('user-badge');
+        var photo = document.getElementById('user-photo');
+        var name = document.getElementById('user-name');
+        if (user.photo_100) photo.src = user.photo_100;
+        name.textContent = [user.first_name, user.last_name].filter(Boolean).join(' ');
+        badge.classList.add('visible');
+      }).catch(function () {
+        // Открыто вне VK (обычный браузер) или пользователь не дал доступ —
+        // страница остаётся полностью рабочей без бейджа.
+      });
+    }
+
+    // ---- Разбор по предметной области ----
+    var API_BASE = '/api';
+    var subjectSelect = document.getElementById('subject-select');
+    var citySelect = document.getElementById('city-select');
+    var stateEl = document.getElementById('explorer-state');
+    var resultsEl = document.getElementById('explorer-results');
+    var topPostsEl = document.getElementById('top-posts');
+
+    function fmt(n) {
+      return typeof n === 'number' ? n.toLocaleString('ru-RU') : '—';
+    }
+
+    function renderPost(post) {
+      var card = document.createElement('a');
+      card.className = 'post-card';
+      card.href = post.url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+
+      var meta = document.createElement('div');
+      meta.className = 'post-meta';
+      var group = document.createElement('span');
+      group.className = 'post-group';
+      group.textContent = post.group_name + (post.city ? ' · ' + post.city : '');
+      meta.appendChild(group);
+      if (post.published_at) {
+        var date = document.createElement('span');
+        date.textContent = new Date(post.published_at).toLocaleDateString('ru-RU');
+        meta.appendChild(date);
       }
+      card.appendChild(meta);
+
+      var text = document.createElement('div');
+      text.className = 'post-text';
+      text.textContent = post.text || '(без текста)';
+      card.appendChild(text);
+
+      var engagement = document.createElement('div');
+      engagement.className = 'post-engagement';
+      engagement.innerHTML =
+        '<span>♥ ' + fmt(post.likes) + '</span>' +
+        '<span>↻ ' + fmt(post.reposts) + '</span>' +
+        '<span>💬 ' + fmt(post.comments) + '</span>';
+      card.appendChild(engagement);
+
+      return card;
+    }
+
+    function loadStats() {
+      var subject = subjectSelect.value;
+      var city = citySelect.value;
+      if (!subject) return;
+
+      resultsEl.style.display = 'none';
+      stateEl.style.display = 'block';
+      stateEl.className = 'explorer-state';
+      stateEl.textContent = 'Загрузка…';
+
+      var url = API_BASE + '/stats?subject=' + encodeURIComponent(subject) +
+        (city ? '&city=' + encodeURIComponent(city) : '');
+
+      fetch(url).then(function (response) {
+        if (!response.ok) {
+          return response.json().then(function (body) {
+            throw new Error(body.detail || 'Ошибка загрузки');
+          });
+        }
+        return response.json();
+      }).then(function (data) {
+        document.getElementById('stat-groups').textContent = fmt(data.groups_total);
+        document.getElementById('stat-posts').textContent = fmt(data.posts_total);
+        document.getElementById('stat-likes').textContent = fmt(data.likes_total);
+        document.getElementById('stat-reposts').textContent = fmt(data.reposts_total);
+
+        topPostsEl.innerHTML = '';
+        if (data.top_posts && data.top_posts.length) {
+          data.top_posts.forEach(function (post) {
+            topPostsEl.appendChild(renderPost(post));
+          });
+        } else {
+          var empty = document.createElement('div');
+          empty.className = 'explorer-state';
+          empty.textContent = 'Постов с вовлечённостью пока нет для этого сочетания.';
+          topPostsEl.appendChild(empty);
+        }
+
+        stateEl.style.display = 'none';
+        resultsEl.style.display = 'flex';
+      }).catch(function (error) {
+        stateEl.className = 'explorer-state error';
+        stateEl.textContent = error.message || 'Не удалось загрузить данные.';
+      });
+    }
+
+    Promise.all([
+      fetch(API_BASE + '/subjects').then(function (r) { return r.json(); }),
+      fetch(API_BASE + '/cities').then(function (r) { return r.json(); }).catch(function () { return []; }),
+    ]).then(function (results) {
+      var subjects = results[0];
+      var cities = results[1];
+
+      subjects.forEach(function (s) {
+        var option = document.createElement('option');
+        option.value = s.key;
+        option.textContent = s.title;
+        subjectSelect.appendChild(option);
+      });
+
+      cities.forEach(function (c) {
+        var option = document.createElement('option');
+        option.value = c;
+        option.textContent = c;
+        citySelect.appendChild(option);
+      });
+
+      subjectSelect.addEventListener('change', loadStats);
+      citySelect.addEventListener('change', loadStats);
+      loadStats();
     }).catch(function () {
-      // Открыто вне VK (обычный браузер) — страница остаётся полностью рабочей.
+      stateEl.className = 'explorer-state error';
+      stateEl.textContent = 'API сейчас недоступен.';
     });
   })();
 </script>
