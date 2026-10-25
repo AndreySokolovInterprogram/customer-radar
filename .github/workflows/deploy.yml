@@ -50,7 +50,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "sudo -n -l 2>&1 || true; ls -la /etc/nginx/sites-enabled/ 2>&1 || true"
+            "ls -la /etc/nginx/sites-available/customer-radar; id; cat /etc/nginx/sites-available/customer-radar"
 
 
       - name: Write VK secret key (if configured)
