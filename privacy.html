@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Политика конфиденциальности — Проект Маркли</title>
+<meta name="description" content="Политика конфиденциальности сервиса «Проект Маркли» (ООО «Визуальный навигатор»). Условия сбора, обработки и защиты пользовательских данных.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Golos+Text:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #ECEFF3;
+    --ink: #10152A;
+    --ink-2: #3C4457;
+    --muted: #6B7386;
+    --line: rgba(16, 21, 42, 0.10);
+    --accent: #2688EB;
+    --accent-soft: rgba(38, 136, 235, 0.12);
+    --shadow: 0 1px 2px rgba(16, 21, 42, 0.04), 0 8px 24px rgba(16, 21, 42, 0.06);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0C0F1A;
+      --surface: #131728;
+      --surface-2: #1D2236;
+      --ink: #EEF0F5;
+      --ink-2: #C4C9D6;
+      --muted: #8890A3;
+      --line: rgba(238, 240, 245, 0.12);
+      --accent: #529EF4;
+      --accent-soft: rgba(82, 158, 244, 0.16);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink-2);
+    font-family: 'Golos Text', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+  .nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: opacity 0.2s ease;
+  }
+  .back-link:hover { opacity: 0.8; }
+  .badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--surface-2);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .doc-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 32px 28px;
+    box-shadow: var(--shadow);
+  }
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(22px, 4vw, 30px);
+    color: var(--ink);
+    line-height: 1.2;
+    margin: 0 0 12px;
+  }
+  .doc-date {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+  h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--ink);
+    margin: 28px 0 12px;
+    line-height: 1.3;
+  }
+  p, li {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    margin: 0 0 14px;
+  }
+  ul, ol {
+    margin: 0 0 16px;
+    padding-left: 22px;
+  }
+  li { margin-bottom: 8px; }
+  strong { color: var(--ink); font-weight: 600; }
+  .info-box {
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 20px 0;
+  }
+  .info-box p { margin: 0; }
+  .contact-block {
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 24px;
+  }
+  a { color: var(--accent); }
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="nav-header">
+    <a href="index.html" class="back-link">← Вернуться в приложение</a>
+    <span class="badge">ООО «Визуальный навигатор»</span>
+  </div>
+
+  <article class="doc-card">
+    <h1>Политика конфиденциальности</h1>
+    <div class="doc-date">Действующая редакция от 24 октября 2026 года</div>
+
+    <div class="info-box">
+      <p>Настоящая Политика конфиденциальности определяет порядок обработки и защиты информации о физических лицах, пользующихся мини-приложением <strong>«Проект Маркли»</strong> на платформе VK Mini Apps.</p>
+    </div>
+
+    <h2>1. Общие положения и оператор данных</h2>
+    <p>1.1. Оператором сервиса и персональных данных является <strong>Общество с ограниченной ответственностью «Визуальный навигатор» (ООО «Визуальный навигатор»)</strong>.</p>
+    <p>1.2. Использование мини-приложения означает безоговорочное согласие пользователя с настоящей Политикой и указанными в ней условиями обработки информации. В случае несогласия с этими условиями пользователь должен прекратить использование сервиса.</p>
+
+    <h2>2. Состав обрабатываемых данных</h2>
+    <p>2.1. Сервис обрабатывает исключительно открытые и минимально необходимые данные, предоставляемые платформой ВКонтакте при запуске мини-приложения:</p>
+    <ul>
+      <li><strong>Идентификатор пользователя ВКонтакте (vk_user_id)</strong> — для проверки подлинности сессии запуска и персонализации;</li>
+      <li><strong>Имя и фамилия</strong> — для отображения приветствия в интерфейсе сервиса;</li>
+      <li><strong>Ссылка на фотографию профиля (аватар)</strong> — для визуализации личного профиля в шапке приложения;</li>
+      <li><strong>Технические параметры запуска мини-приложения (строка запуска VK launch params)</strong> — передаются платформой ВКонтакте и используются для криптографической проверки подписи (HMAC-SHA256) в целях предотвращения несанкционированного доступа;</li>
+      <li><strong>Пользовательские настройки и предпочтения</strong> — выбранные отрасли бизнеса, города поиска и сохранённые отчёты, которые хранятся локально в браузере пользователя (хранилище localStorage устройства).</li>
+    </ul>
+
+    <h2>3. Данные, которые сервис категорически не собирает</h2>
+    <p>3.1. «Проект Маркли» уважает приватность пользователей:</p>
+    <ul>
+      <li>Мы <strong>не запрашиваем</strong> доступ к личным сообщениям, списку друзей, телефонным номерам или паролям пользователей;</li>
+      <li>Мы <strong>не обрабатываем</strong> платёжные реквизиты, номера банковских карт и иную финансовую информацию;</li>
+      <li>Сервис <strong>не публикует</strong> от имени пользователя никаких записей на стене, сообщений или историй без его прямого и осознанного действия (вызов стандартного диалога «Поделиться»).</li>
+    </ul>
+
+    <h2>4. Цели обработки информации</h2>
+    <p>Обработка данных осуществляется исключительно в следующих целях:</p>
+    <ul>
+      <li>Предоставление доступа к функционалу аналитического сервиса «Проект Маркли»;</li>
+      <li>Персонализация пользовательского интерфейса мини-приложения;</li>
+      <li>Проверка подлинности запросов к аналитическому API и защита от несанкционированного использования;</li>
+      <li>Оказание оперативной технической поддержки пользователям при их обращении.</li>
+    </ul>
+
+    <h2>5. Обеспечение безопасности и конфиденциальности</h2>
+    <p>5.1. Все данные между клиентом и сервисом передаются исключительно по защищённому зашифрованному протоколу HTTPS с использованием современных стандартов криптографии (TLS 1.3).</p>
+    <p>5.2. Оператор принимает необходимые организационные и технические меры для защиты информации от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования и распространения.</p>
+    <p>5.3. Передача данных третьим лицам исключена, за исключением случаев, прямо предусмотренных действующим законодательством Российской Федерации.</p>
+
+    <h2>6. Порядок хранения, удаления данных и отзыва согласия</h2>
+    <p>6.1. Пользовательские фильтры и сохранённые отчёты хранятся непосредственно на устройстве пользователя в локальном хранилище. Пользователь может в любой момент самостоятельно очистить их нажатием кнопки «Очистить все» в разделе «Сохранённые» мини-приложения либо удалением данных сайта в настройках браузера.</p>
+    <p>6.2. Пользователь имеет право в любой момент отозвать своё согласие на обработку данных и потребовать полного удаления любых связанных с его <code>vk_user_id</code> технических записей и данных.</p>
+    <p>6.3. Для направления запроса на отзыв согласия или удаление данных достаточно обратиться в службу поддержки:</p>
+    <ul>
+      <li>Через официальное сообщество во ВКонтакте: <a href="https://vk.com/markly" target="_blank" rel="noopener noreferrer">vk.com/markly</a>;</li>
+      <li>По электронной почте: <a href="mailto:support@markly.ru">support@markly.ru</a>.</li>
+    </ul>
+    <p>6.4. Срок рассмотрения запроса и полного удаления связанных данных составляет не более <strong>10 (десяти) рабочих дней</strong> с момента получения обращения.</p>
+
+    <h2>7. Контактная информация оператора</h2>
+    <div class="contact-block">
+      <p><strong>Оператор:</strong> ООО «Визуальный навигатор»</p>
+      <p><strong>Электронная почта службы поддержки:</strong> <a href="mailto:support@markly.ru">support@markly.ru</a></p>
+      <p><strong>Официальное сообщество сервиса во ВКонтакте:</strong> <a href="https://vk.com/markly" target="_blank" rel="noopener noreferrer">https://vk.com/markly</a></p>
+    </div>
+  </article>
+
+  <footer>
+    © 2026 ООО «Визуальный навигатор». Все права защищены.
+  </footer>
+</div>
+
+</body>
+</html>

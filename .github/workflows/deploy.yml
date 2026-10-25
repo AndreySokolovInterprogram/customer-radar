@@ -11,11 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate HTML is well-formed
-        run: python3 -c "import html.parser, sys; p = html.parser.HTMLParser(); p.feed(open('index.html', encoding='utf-8').read())"
+      - name: Validate HTML files are well-formed
+        run: |
+          python3 -c "
+          import html.parser, sys
+          for filename in ['index.html', 'privacy.html', 'terms.html']:
+              parser = html.parser.HTMLParser()
+              parser.feed(open(filename, encoding='utf-8').read())
+          print('All HTML files validated successfully.')
+          "
 
       - name: Validate API syntax
-        run: python3 -c "import ast; [ast.parse(open(f).read()) for f in ['api/main.py', 'api/refresh_cache.py']]"
+        run: python3 -c "import ast; [ast.parse(open(f).read()) for f in ['api/main.py', 'api/refresh_cache.py']]; print('Python syntax validated successfully.')"
 
       - name: Configure SSH
         run: |
@@ -26,38 +33,54 @@ jobs:
 
       - name: Sync static files
         run: |
-          rsync -az --delete \
+          rsync -az \
             -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" \
-            index.html \
+            index.html privacy.html terms.html \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/public/"
 
-      - name: Sync API code
+      - name: Sync API code and data
         run: |
           rsync -az \
-            --exclude 'cache.db' --exclude '__pycache__' \
+            --exclude '__pycache__' \
             -e "ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts" \
             api/ \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/api/"
 
-      - name: Restart API services
+      - name: Update Nginx configuration (if permitted)
+        run: |
+          scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            nginx.vk.markly.ru.conf \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/nginx.vk.markly.ru.conf"
+          ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "if sudo -n cp /tmp/nginx.vk.markly.ru.conf /etc/nginx/sites-available/vk.markly.ru.conf 2>/dev/null; then
+               sudo -n ln -sf /etc/nginx/sites-available/vk.markly.ru.conf /etc/nginx/sites-enabled/vk.markly.ru.conf 2>/dev/null || true
+               if sudo -n nginx -t 2>/dev/null; then
+                 sudo -n systemctl reload nginx 2>/dev/null || true
+                 echo 'Nginx configuration updated and reloaded.'
+               fi
+             fi
+             rm -f /tmp/nginx.vk.markly.ru.conf"
+
+      - name: Write VK secret key (if configured)
+        env:
+          VK_SECRET_KEY: ${{ secrets.VK_SECRET_KEY }}
+        run: |
+          if [ -z "$VK_SECRET_KEY" ]; then
+            echo "VK_SECRET_KEY not set, skipping"
+            exit 0
+          fi
+          printf 'VK_SECRET_KEY=%s\n' "$VK_SECRET_KEY" > vk_secret_key.env
+          scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            vk_secret_key.env \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/.env"
+          rm -f vk_secret_key.env
+
+      - name: Restart API web service (uvicorn only)
         run: |
           ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "sudo -n systemctl restart customer-radar-api.service && sudo -n systemctl restart customer-radar-refresh.service"
-
-      - name: Write VK secure key (if configured)
-        env:
-          VK_SECURE_KEY: ${{ secrets.VK_SECURE_KEY }}
-        run: |
-          if [ -z "$VK_SECURE_KEY" ]; then
-            echo "VK_SECURE_KEY not set, skipping"
-            exit 0
-          fi
-          printf 'VK_SECURE_KEY=%s\n' "$VK_SECURE_KEY" > vk_secure_key.env
-          scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
-            vk_secure_key.env \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/.env"
-          rm -f vk_secure_key.env
+            "sudo -n systemctl restart customer-radar-api.service"
 
       - name: Clean up key
         if: always()

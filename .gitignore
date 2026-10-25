@@ -1,0 +1,37 @@
+# SQLite local data cache
+# We explicitly track api/cache.db for deployments
+*.sqlite
+*.sqlite3
+*.db
+!api/cache.db
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+
+# Environment and secrets
+.env
+vk_secret_key.env
+vk_secure_key.env
+*.env
+
+# macOS and OS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+__MACOSX/
+Thumbs.db
+ehthumbs.db
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.rar

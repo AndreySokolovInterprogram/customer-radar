@@ -3,84 +3,594 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Клиентский Радар</title>
-<meta name="description" content="Живая витрина данных NCA-RS: сообщества, посты и профили пользователей по четырём предметным областям исследования.">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Golos+Text:wght@400;500;600;700&display=swap">
+<title>Проект Маркли — Аналитика аудитории и сообществ ВКонтакте</title>
+<meta name="description" content="Проект Маркли — аналитический сервис для бизнеса, который помогает находить целевую аудиторию и активные сообщества во ВКонтакте по отраслям и городам.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Golos+Text:wght@400;500;600;700&display=swap">
 <style>
   :root {
-    --bg: #F4F6F8;
+    --bg: #F4F6F9;
     --surface: #FFFFFF;
-    --surface-2: #ECEFF3;
-    --ink: #10152A;
-    --ink-2: #3C4457;
-    --muted: #6B7386;
-    --line: rgba(16, 21, 42, 0.10);
-    --accent: #B9791E;
-    --accent-fill: #E8A33D;
-    --accent-soft: rgba(232, 163, 61, 0.14);
-    --teal: #1D7F73;
-    --teal-soft: rgba(29, 127, 115, 0.12);
-    --shadow: 0 1px 2px rgba(16, 21, 42, 0.04), 0 8px 24px rgba(16, 21, 42, 0.06);
+    --surface-elevated: #FFFFFF;
+    --surface-2: #EEF1F5;
+    --surface-3: #E2E6EC;
+    --ink: #0F1324;
+    --ink-2: #2E364A;
+    --muted: #697386;
+    --line: rgba(15, 19, 36, 0.08);
+    --line-strong: rgba(15, 19, 36, 0.16);
+    
+    /* VK Brand palette */
+    --vk-blue: #2688EB;
+    --vk-blue-hover: #1E74CD;
+    --vk-blue-soft: rgba(38, 136, 235, 0.12);
+    --accent-teal: #18A08B;
+    --accent-teal-soft: rgba(24, 160, 139, 0.12);
+    --accent-amber: #E28B14;
+    --accent-amber-soft: rgba(226, 139, 20, 0.14);
+    --danger: #E64646;
+    --danger-soft: rgba(230, 70, 70, 0.12);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-full: 9999px;
+
+    --shadow-sm: 0 1px 3px rgba(15, 19, 36, 0.05);
+    --shadow-md: 0 4px 16px rgba(15, 19, 36, 0.07);
+    --shadow-lg: 0 12px 32px rgba(15, 19, 36, 0.10);
+
     color-scheme: light dark;
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0C0F1A;
-      --surface: #131728;
-      --surface-2: #1D2236;
-      --ink: #EEF0F5;
-      --ink-2: #C4C9D6;
-      --muted: #8890A3;
-      --line: rgba(238, 240, 245, 0.12);
-      --accent: #F0B559;
-      --accent-fill: #F0B559;
-      --accent-soft: rgba(240, 181, 89, 0.16);
-      --teal: #3FBBA8;
-      --teal-soft: rgba(63, 187, 168, 0.16);
-      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+      --bg: #0C0F19;
+      --surface: #141826;
+      --surface-elevated: #1A2033;
+      --surface-2: #1E253B;
+      --surface-3: #28314D;
+      --ink: #EEF1F8;
+      --ink-2: #C5CBD9;
+      --muted: #8791A6;
+      --line: rgba(238, 241, 248, 0.10);
+      --line-strong: rgba(238, 241, 248, 0.18);
+
+      --vk-blue: #529EF4;
+      --vk-blue-hover: #6EB2FF;
+      --vk-blue-soft: rgba(82, 158, 244, 0.18);
+      --accent-teal: #36C6B0;
+      --accent-teal-soft: rgba(54, 198, 176, 0.18);
+      --accent-amber: #F2A33A;
+      --accent-amber-soft: rgba(242, 163, 58, 0.18);
+      --danger: #FF6B6B;
+      --danger-soft: rgba(255, 107, 107, 0.18);
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.55);
     }
   }
 
   :root[data-theme="dark"] {
-    --bg: #0C0F1A;
-    --surface: #131728;
-    --surface-2: #1D2236;
-    --ink: #EEF0F5;
-    --ink-2: #C4C9D6;
-    --muted: #8890A3;
-    --line: rgba(238, 240, 245, 0.12);
-    --accent: #F0B559;
-    --accent-fill: #F0B559;
-    --accent-soft: rgba(240, 181, 89, 0.16);
-    --teal: #3FBBA8;
-    --teal-soft: rgba(63, 187, 168, 0.16);
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --bg: #0C0F19;
+    --surface: #141826;
+    --surface-elevated: #1A2033;
+    --surface-2: #1E253B;
+    --surface-3: #28314D;
+    --ink: #EEF1F8;
+    --ink-2: #C5CBD9;
+    --muted: #8791A6;
+    --line: rgba(238, 241, 248, 0.10);
+    --line-strong: rgba(238, 241, 248, 0.18);
+
+    --vk-blue: #529EF4;
+    --vk-blue-hover: #6EB2FF;
+    --vk-blue-soft: rgba(82, 158, 244, 0.18);
+    --accent-teal: #36C6B0;
+    --accent-teal-soft: rgba(54, 198, 176, 0.18);
+    --accent-amber: #F2A33A;
+    --accent-amber-soft: rgba(242, 163, 58, 0.18);
+    --danger: #FF6B6B;
+    --danger-soft: rgba(255, 107, 107, 0.18);
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.55);
+  }
+
+  :root[data-theme="light"] {
+    --bg: #F4F6F9;
+    --surface: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --surface-2: #EEF1F5;
+    --surface-3: #E2E6EC;
+    --ink: #0F1324;
+    --ink-2: #2E364A;
+    --muted: #697386;
+    --line: rgba(15, 19, 36, 0.08);
+    --line-strong: rgba(15, 19, 36, 0.16);
+
+    --vk-blue: #2688EB;
+    --vk-blue-hover: #1E74CD;
+    --vk-blue-soft: rgba(38, 136, 235, 0.12);
+    --accent-teal: #18A08B;
+    --accent-teal-soft: rgba(24, 160, 139, 0.12);
+    --accent-amber: #E28B14;
+    --accent-amber-soft: rgba(226, 139, 20, 0.14);
+    --danger: #E64646;
+    --danger-soft: rgba(230, 70, 70, 0.12);
+
+    --shadow-sm: 0 1px 3px rgba(15, 19, 36, 0.05);
+    --shadow-md: 0 4px 16px rgba(15, 19, 36, 0.07);
+    --shadow-lg: 0 12px 32px rgba(15, 19, 36, 0.10);
   }
 
   * { box-sizing: border-box; }
-
-  html, body { margin: 0; padding: 0; }
-
-  body {
+  html, body {
+    margin: 0;
+    padding: 0;
     background: var(--bg);
     color: var(--ink-2);
-    font-family: 'Golos Text', 'PT Sans', system-ui, sans-serif;
+    font-family: 'Golos Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  img { max-width: 100%; }
+  a { color: var(--vk-blue); text-decoration: none; }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  }
+  button:active { transform: scale(0.98); }
 
-  .page {
-    max-width: 760px;
+  .app-wrap {
+    max-width: 820px;
     margin: 0 auto;
-    padding: 28px 20px 56px;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    padding: 16px 16px 48px;
+    gap: 20px;
   }
 
-  .topbar {
+  /* ---- HEADER ---- */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--vk-blue), #0055C4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    box-shadow: 0 4px 10px var(--vk-blue-soft);
+    flex: none;
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-name {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .brand-tagline {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .user-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 5px;
+    background: var(--surface-2);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--line);
+  }
+  .user-badge.visible { display: inline-flex; }
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .btn-icon-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: var(--radius-full);
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-size: 12.5px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+  }
+  .btn-icon-label:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+  }
+
+  .saved-counter {
+    background: var(--vk-blue);
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 999px;
+    display: none;
+  }
+  .saved-counter.has-items { display: inline-block; }
+
+  /* ---- VIEWS SYSTEM ---- */
+  .view-container {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.25s ease;
+  }
+  .view-container.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- HERO SECTION ---- */
+  .hero-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 32px 26px 28px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, var(--vk-blue-soft) 0%, transparent 70%);
+    pointer-events: none;
+    border-radius: 50%;
+  }
+
+  .kicker-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vk-blue);
+    background: var(--vk-blue-soft);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    margin-bottom: 16px;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-teal);
+    box-shadow: 0 0 0 0 var(--accent-teal-soft);
+    animation: pulseGlow 2.2s infinite ease-out;
+  }
+  @keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(24, 160, 139, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(24, 160, 139, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(24, 160, 139, 0); }
+  }
+
+  .hero-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: clamp(23px, 4.8vw, 34px);
+    line-height: 1.18;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+
+  .hero-description {
+    font-size: 15.5px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    margin: 0 0 24px;
+    max-width: 66ch;
+  }
+
+  .hero-cta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--vk-blue);
+    color: #FFFFFF;
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 13px 24px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px var(--vk-blue-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary:hover {
+    background: var(--vk-blue-hover);
+    box-shadow: 0 6px 18px var(--vk-blue-soft);
+  }
+
+  .btn-secondary {
+    background: var(--surface-2);
+    color: var(--ink);
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 13px 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-secondary:hover {
+    background: var(--surface-3);
+  }
+
+  /* ---- PRESETS SECTION ---- */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 4px 4px 10px;
+  }
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 15.5px;
+    color: var(--ink);
+    margin: 0;
+  }
+  .section-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .preset-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  }
+  .preset-card:hover {
+    border-color: var(--vk-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .preset-badge {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--vk-blue-soft);
+    color: var(--vk-blue);
+  }
+
+  .preset-name {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-right: 60px;
+    line-height: 1.35;
+  }
+
+  .preset-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  /* ---- STATS HIGHLIGHTS ---- */
+  .metrics-summary-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .summary-stat-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 18px 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .summary-stat-box .num {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .summary-stat-box .lbl {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+
+  .summary-stat-box .sublbl {
+    font-size: 11px;
+    color: var(--accent-teal);
+    font-weight: 600;
+  }
+
+  /* ---- SEARCH CONFIGURATOR CARD ---- */
+  .configurator-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 580px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .select-wrapper {
+    position: relative;
+  }
+
+  .form-select, .form-input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    appearance: none;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .form-select:focus, .form-input:focus {
+    border-color: var(--vk-blue);
+    background: var(--surface);
+  }
+
+  .select-arrow {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--muted);
+  }
+
+  /* ---- RESULTS VIEW ---- */
+  .report-header {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 24px 26px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .report-topline {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -88,746 +598,1711 @@
     flex-wrap: wrap;
   }
 
-  .kicker {
-    display: inline-flex;
+  .report-badge-group {
+    display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge-subject {
+    background: var(--vk-blue-soft);
+    color: var(--vk-blue);
+    font-weight: 700;
     font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
   }
 
-  .pulse {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--teal);
-    box-shadow: 0 0 0 0 var(--teal-soft);
-    animation: pulse 2.4s ease-out infinite;
-    flex: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .pulse { animation: none; }
-  }
-
-  @keyframes pulse {
-    0%   { box-shadow: 0 0 0 0 var(--teal-soft); }
-    70%  { box-shadow: 0 0 0 8px transparent; }
-    100% { box-shadow: 0 0 0 0 transparent; }
-  }
-
-  .snapshot-pill {
+  .badge-city {
+    background: var(--accent-teal-soft);
+    color: var(--accent-teal);
+    font-weight: 700;
     font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-variant-numeric: tabular-nums;
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
   }
 
-  .hero h1 {
+  .report-title {
     font-family: 'Unbounded', sans-serif;
-    font-weight: 800;
-    font-size: clamp(30px, 6vw, 42px);
-    line-height: 1.08;
-    letter-spacing: -0.01em;
+    font-weight: 700;
+    font-size: clamp(20px, 4vw, 26px);
     color: var(--ink);
-    text-wrap: balance;
-    margin: 10px 0 10px;
+    margin: 0;
+    line-height: 1.25;
   }
 
-  .hero p {
-    max-width: 58ch;
-    font-size: 15.5px;
+  .report-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+    border-top: 1px solid var(--line);
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-full);
+    background: var(--surface-2);
     color: var(--ink-2);
-  }
-
-  .hero p strong {
-    color: var(--ink);
+    font-size: 13px;
     font-weight: 600;
-  }
-
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1px;
-    background: var(--line);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
+  }
+  .btn-action:hover {
+    background: var(--surface-3);
+    color: var(--ink);
+  }
+  .btn-action.primary {
+    background: var(--vk-blue);
+    color: #FFFFFF;
+    border-color: var(--vk-blue);
+  }
+  .btn-action.primary:hover {
+    background: var(--vk-blue-hover);
   }
 
-  .stat {
+  /* ---- METRICS GRID ---- */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .metric-card {
     background: var(--surface);
-    padding: 18px 18px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 18px 16px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    box-shadow: var(--shadow-sm);
   }
 
-  .stat .value {
+  .metric-val {
     font-family: 'Unbounded', sans-serif;
     font-weight: 700;
-    font-size: 26px;
+    font-size: 24px;
     color: var(--ink);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-
-  .stat .label {
-    font-size: 12.5px;
-    color: var(--muted);
-    line-height: 1.35;
-  }
-
-  .stat .sub {
-    font-size: 11.5px;
-    color: var(--teal);
-    font-weight: 600;
-  }
-
-  section h2 {
-    font-family: 'Unbounded', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--ink);
-    letter-spacing: 0.01em;
-    margin: 0 0 3px;
-  }
-
-  section .section-note {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
-
-  .subjects {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 18px 20px 8px;
-    box-shadow: var(--shadow);
-  }
-
-  .subject-row {
-    display: grid;
-    grid-template-columns: 168px 1fr auto;
-    align-items: center;
-    gap: 14px;
-    padding: 13px 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .subject-row:last-child { border-bottom: none; }
-
-  .subject-name {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-
-  .subject-track {
-    position: relative;
-    height: 10px;
-    background: var(--surface-2);
-    border-radius: 5px;
-    overflow: hidden;
-  }
-
-  .subject-fill {
-    position: absolute;
-    inset: 0;
-    width: var(--w);
-    background: var(--accent-fill);
-    border-radius: 5px;
-  }
-
-  .subject-figures {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    min-width: 118px;
-  }
-
-  .subject-figures .groups {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--ink);
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
 
-  .subject-figures .meta {
+  .metric-lbl {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .metric-sub {
     font-size: 11px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
+    color: var(--accent-teal);
+    font-weight: 600;
   }
 
-  .legend-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11.5px;
-    color: var(--muted);
-    padding: 10px 0 14px;
-  }
-
-  .legend-swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-    background: var(--accent-fill);
-    flex: none;
-  }
-
-  .funnel {
+  /* ---- INSIGHTS & RECOMMENDATIONS ---- */
+  .insights-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 18px 20px 20px;
-    box-shadow: var(--shadow);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
-  .funnel-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: baseline;
+  .insights-header {
+    display: flex;
+    align-items: center;
     gap: 10px;
   }
 
-  .funnel-track {
-    grid-column: 1 / -1;
-    height: 8px;
-    background: var(--surface-2);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .funnel-fill {
-    height: 100%;
-    width: var(--w);
-    background: var(--teal);
-    border-radius: 4px;
-  }
-
-  .funnel-name {
-    font-size: 13px;
-    color: var(--ink-2);
-  }
-
-  .funnel-value {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .mvp-note {
+  .insights-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-amber-soft);
+    color: var(--accent-amber);
     display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    background: var(--accent-soft);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px 18px;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex: none;
   }
 
-  .mvp-note .mark {
+  .insights-title {
     font-family: 'Unbounded', sans-serif;
     font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    color: var(--accent);
-    background: var(--surface);
-    border-radius: 999px;
-    padding: 4px 10px;
-    flex: none;
-    white-space: nowrap;
-  }
-
-  .mvp-note p {
-    font-size: 13px;
-    color: var(--ink-2);
+    font-size: 16px;
+    color: var(--ink);
     margin: 0;
   }
 
-  footer {
-    text-align: center;
-    font-size: 11.5px;
-    color: var(--muted);
-    padding-top: 4px;
+  .insights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 
-  @media (max-width: 480px) {
-    .subject-row {
-      grid-template-columns: 1fr;
-      gap: 6px;
-    }
-    .subject-figures {
-      flex-direction: row;
-      align-items: baseline;
-      gap: 8px;
-      min-width: 0;
-    }
+  .insight-item {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    border-left: 4px solid var(--vk-blue);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  /* ---- VK user badge ---- */
-  .user-badge {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    font-size: 12.5px;
-    font-weight: 600;
+  .insight-item.amber { border-left-color: var(--accent-amber); }
+  .insight-item.teal { border-left-color: var(--accent-teal); }
+
+  .insight-item-title {
+    font-size: 13.5px;
+    font-weight: 700;
     color: var(--ink);
   }
 
-  .user-badge.visible { display: inline-flex; }
-
-  .user-badge img {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: block;
+  .insight-item-text {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
   }
 
-  /* ---- explorer (subject + city picker) ---- */
-  .explorer {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 18px 20px 20px;
-    box-shadow: var(--shadow);
+  /* ---- POSTS LIST ---- */
+  .posts-section {
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
 
-  .explorer-controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .field label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  .field select {
-    width: 100%;
-    font: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--ink);
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 12px;
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
-    background-size: 5px 5px, 5px 5px;
-    background-repeat: no-repeat;
-  }
-
-  .explorer-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: 10px;
-  }
-
-  .explorer-summary .mini-stat {
-    background: var(--surface-2);
-    border-radius: 10px;
-    padding: 10px 12px;
+  .posts-list {
     display: flex;
     flex-direction: column;
-    gap: 3px;
-  }
-
-  .explorer-summary .mini-stat .value {
-    font-family: 'Unbounded', sans-serif;
-    font-weight: 700;
-    font-size: 17px;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .explorer-summary .mini-stat .label {
-    font-size: 10.5px;
-    color: var(--muted);
-  }
-
-  .top-posts {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
 
   .post-card {
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    text-decoration: none;
-    color: inherit;
+    gap: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s ease, transform 0.15s ease;
+  }
+  .post-card:hover {
+    border-color: var(--vk-blue);
   }
 
-  .post-card:hover { border-color: var(--accent-fill); }
-
-  .post-card .post-meta {
+  .post-meta-top {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    font-size: 11.5px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .post-community {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .post-date {
+    font-size: 12px;
     color: var(--muted);
   }
 
-  .post-card .post-group { font-weight: 600; color: var(--ink); }
-
-  .post-card .post-text {
-    font-size: 13px;
+  .post-body-text {
+    font-size: 13.5px;
     color: var(--ink-2);
+    line-height: 1.55;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .post-card .post-engagement {
+  .post-stats-row {
     display: flex;
-    gap: 12px;
-    font-size: 12px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  .post-counters {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 12.5px;
     font-weight: 600;
-    color: var(--teal);
+    color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
 
-  .explorer-state {
-    font-size: 13px;
-    color: var(--muted);
-    padding: 8px 0;
+  .post-counter-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
-  .explorer-state.error { color: var(--accent); }
+  .post-counter-item.likes { color: var(--danger); }
+  .post-counter-item.reposts { color: var(--accent-teal); }
+  .post-counter-item.comments { color: var(--vk-blue); }
+
+  .post-open-link {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--vk-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .post-open-link:hover { text-decoration: underline; }
+
+  /* ---- SAVED REPORTS VIEW ---- */
+  .saved-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .saved-item-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+  }
+
+  .saved-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .saved-item-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+  }
+
+  .saved-item-meta {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .saved-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---- UI STATES (LOADING, EMPTY, ERROR) ---- */
+  .state-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 48px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3.5px solid var(--surface-3);
+    border-top-color: var(--vk-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .state-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .state-desc {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 44ch;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .skeleton-card {
+    height: 90px;
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-md);
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ---- ONBOARDING MODAL / SCREEN ---- */
+  .onboarding-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 36px 28px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .onboarding-step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 160px;
+  }
+
+  .onboarding-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--vk-blue-soft);
+    color: var(--vk-blue);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .onboarding-step-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .onboarding-step-text {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .onboarding-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .dots-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    transition: all 0.2s ease;
+  }
+  .dot.active {
+    width: 22px;
+    border-radius: 999px;
+    background: var(--vk-blue);
+  }
+
+  /* ---- SUPPORT MODAL / VIEW ---- */
+  .support-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 30px 26px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .support-channels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .support-box {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .support-box-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .support-box-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .tech-info-card {
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ---- LEGAL IN-APP READER ---- */
+  .legal-reader {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 28px 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .legal-reader h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin: 0;
+  }
+  .legal-reader p, .legal-reader li {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+
+  /* ---- FOOTER ---- */
+  .footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .footer-links a, .footer-links button {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .footer-links a:hover, .footer-links button:hover {
+    color: var(--vk-blue);
+  }
+
+  /* ---- TOAST NOTIFICATION ---- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(30px);
+    background: var(--surface-elevated);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: var(--radius-full);
+    font-size: 13.5px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--line-strong);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
 </style>
 </head>
 <body>
 
-<div class="page">
+<div class="app-wrap">
 
-  <div class="topbar">
-    <span class="kicker"><span class="pulse"></span>Клиентский Радар · MVP</span>
-    <span style="display:flex; align-items:center; gap:10px;">
-      <span class="user-badge" id="user-badge"><img id="user-photo" alt=""><span id="user-name"></span></span>
-      <span class="snapshot-pill" id="snapshot-date">снимок данных: 03.09.2026</span>
-    </span>
+  <!-- TOPBAR HEADER -->
+  <header class="header">
+    <div class="brand" id="brand-logo-btn" title="На главную">
+      <div class="brand-logo">М</div>
+      <div class="brand-text">
+        <span class="brand-name">Проект Маркли</span>
+        <span class="brand-tagline">Аналитика аудитории и сообществ</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-badge" id="user-badge">
+        <img class="user-avatar" id="user-avatar" src="" alt="VK ID">
+        <span class="user-name" id="user-name"></span>
+      </div>
+
+      <button type="button" class="btn-icon-label" id="btn-open-how">
+        <span>Как это работает</span>
+      </button>
+
+      <button type="button" class="btn-icon-label" id="btn-open-saved">
+        <span>Сохранённые</span>
+        <span class="saved-counter" id="saved-counter">0</span>
+      </button>
+
+      <button type="button" class="btn-icon-label" id="btn-open-support">
+        <span>Поддержка</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- VIEW: HOME (ГЛАВНЫЙ ЭКРАН)                 -->
+  <!-- ========================================== -->
+  <main class="view-container active" id="view-home">
+    
+    <!-- HERO CARD -->
+    <section class="hero-card">
+      <div class="kicker-pill">
+        <span class="live-dot"></span>
+        <span>Платформа бизнес-аналитики ВКонтакте</span>
+      </div>
+
+      <h1 class="hero-title">
+        Поиск целевой аудитории и активных сообществ по отраслям и городам
+      </h1>
+
+      <p class="hero-description">
+        <strong>Проект Маркли</strong> — аналитический сервис для бизнеса, который помогает находить целевую аудиторию и активные сообщества во ВКонтакте по отраслям и городам. Исследуйте структуру рынка, объём публикаций и паттерны вовлечённости для точного маркетинга.
+      </p>
+
+      <div class="hero-cta-row">
+        <button type="button" class="btn-primary" id="btn-hero-explore">
+          <span>Найти аудиторию и сообщества</span>
+          <span>↓</span>
+        </button>
+        <button type="button" class="btn-secondary" id="btn-hero-guide">
+          <span>О сервисе</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- PLATFORM STATS BAR -->
+    <section class="metrics-summary-bar">
+      <div class="summary-stat-box">
+        <span class="num">17 336</span>
+        <span class="lbl">проверенных сообществ</span>
+        <span class="sublbl">исследовано экспертами</span>
+      </div>
+      <div class="summary-stat-box">
+        <span class="num">1 345 954</span>
+        <span class="lbl">публикаций проанализировано</span>
+        <span class="sublbl">с оценкой вовлечённости</span>
+      </div>
+      <div class="summary-stat-box">
+        <span class="num">755 359</span>
+        <span class="lbl">профилей целевой аудитории</span>
+        <span class="sublbl">структура аудитории</span>
+      </div>
+      <div class="summary-stat-box">
+        <span class="num">100%</span>
+        <span class="lbl">проверенные данные</span>
+        <span class="sublbl">открытые источники</span>
+      </div>
+    </section>
+
+    <!-- PRESETS QUICK SELECTION -->
+    <section>
+      <div class="section-header">
+        <h2 class="section-title">Популярные направления бизнеса</h2>
+        <span class="section-subtitle">Быстрый переход к аналитике</span>
+      </div>
+
+      <div class="presets-grid">
+        <button type="button" class="preset-card" data-preset="customer_acquisition">
+          <span class="preset-badge">B2B фокус</span>
+          <span class="preset-name">Маркетинг и привлечение клиентов</span>
+          <span class="preset-desc">Аудитория предпринимателей, агентств, маркетологов и специалистов по лидогенерации</span>
+        </button>
+
+        <button type="button" class="preset-card" data-preset="tender_support">
+          <span class="preset-badge">Госзакупки</span>
+          <span class="preset-name">Сопровождение тендеров и закупок</span>
+          <span class="preset-desc">Поставщики, участники электронных торгов, эксперты по 44-ФЗ и 223-ФЗ</span>
+        </button>
+
+        <button type="button" class="preset-card" data-preset="food_delivery">
+          <span class="preset-badge">Локальный</span>
+          <span class="preset-name">Доставка еды и готовых блюд</span>
+          <span class="preset-desc">Службы доставки, локальные кухни и агрегаторы заказов</span>
+        </button>
+
+        <button type="button" class="preset-card" data-preset="food_service">
+          <span class="preset-badge">HoReCa</span>
+          <span class="preset-name">Общепит, кафе и рестораны</span>
+          <span class="preset-desc">Заведения питания, кофейни, банкетные площадки и рестораны</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- CONFIGURATOR SECTION -->
+    <section class="configurator-card" id="configurator-section">
+      <div class="section-header" style="margin:0;">
+        <h2 class="section-title">Параметры поиска и фильтрации</h2>
+        <span class="section-subtitle">Выберите отрасль и локацию</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="select-subject">Отрасль бизнеса</label>
+          <div class="select-wrapper">
+            <select class="form-select" id="select-subject">
+              <option value="">Загрузка направлений…</option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="select-city">Город или регион</label>
+          <div class="select-wrapper">
+            <select class="form-select" id="select-city">
+              <option value="">Вся Россия (все города)</option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="btn-submit-search" style="justify-content:center; width:100%;">
+        <span>Показать аналитику</span>
+        <span>→</span>
+      </button>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- VIEW: RESULTS (ЭКРАН АНАЛИТИКИ)            -->
+  <!-- ========================================== -->
+  <section class="view-container" id="view-results">
+    
+    <div class="report-header">
+      <div class="report-topline">
+        <button type="button" class="btn-action" id="btn-results-back">
+          <span>← Изменить параметры</span>
+        </button>
+
+        <div class="report-badge-group">
+          <span class="badge-subject" id="res-badge-subject">—</span>
+          <span class="badge-city" id="res-badge-city">Вся Россия</span>
+        </div>
+      </div>
+
+      <h2 class="report-title" id="res-title">Аналитический отчёт</h2>
+
+      <div class="report-actions">
+        <button type="button" class="btn-action primary" id="btn-save-report">
+          <span>⭐ Сохранить отчёт</span>
+        </button>
+        <button type="button" class="btn-action" id="btn-copy-summary">
+          <span>📋 Скопировать резюме</span>
+        </button>
+        <button type="button" class="btn-action" id="btn-share-report">
+          <span>↗ Поделиться</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- METRICS GRID -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-val" id="res-stat-groups">—</span>
+        <span class="metric-lbl">Активных сообществ</span>
+        <span class="metric-sub">в аналитической выборке</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-val" id="res-stat-posts">—</span>
+        <span class="metric-lbl">Публикаций изучено</span>
+        <span class="metric-sub">исследованный контент</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-val" id="res-stat-engagement">—</span>
+        <span class="metric-lbl">Суммарная активность</span>
+        <span class="metric-sub">лайки, репосты и ответы</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-val" id="res-stat-likes">—</span>
+        <span class="metric-lbl">Отметок «Нравится»</span>
+        <span class="metric-sub">одобрение аудитории</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-val" id="res-stat-reposts">—</span>
+        <span class="metric-lbl">Репостов публикации</span>
+        <span class="metric-sub">виральный охват</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="metric-val" id="res-stat-comments">—</span>
+        <span class="metric-lbl">Комментариев</span>
+        <span class="metric-sub">глубина дискуссий</span>
+      </div>
+    </div>
+
+    <!-- INSIGHTS & MARKETING RECOMMENDATIONS -->
+    <div class="insights-card">
+      <div class="insights-header">
+        <div class="insights-icon">💡</div>
+        <h3 class="insights-title">Аналитические выводы и рекомендации для бизнеса</h3>
+      </div>
+
+      <div class="insights-list" id="res-insights-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- TOP-5 ENGAGED POSTS -->
+    <div class="posts-section">
+      <div class="section-header">
+        <h3 class="section-title">Публикации с максимальной вовлечённостью</h3>
+        <span class="section-subtitle">Ориентиры успешного контента в нише</span>
+      </div>
+
+      <div class="posts-list" id="res-posts-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ========================================== -->
+  <!-- VIEW: SAVED REPORTS (СОХРАНЁННЫЕ ОТЧЁТЫ)   -->
+  <!-- ========================================== -->
+  <section class="view-container" id="view-saved">
+    <div class="report-header">
+      <div class="report-topline">
+        <button type="button" class="btn-action" id="btn-saved-back">
+          <span>← Назад</span>
+        </button>
+        <button type="button" class="btn-action" id="btn-saved-clear-all" style="color:var(--danger);">
+          <span>Очистить все</span>
+        </button>
+      </div>
+      <h2 class="report-title">Сохранённые отчёты</h2>
+      <p style="margin:0; font-size:13px; color:var(--muted);">
+        Отчёты сохраняются локально на вашем устройстве для быстрого доступа.
+      </p>
+    </div>
+
+    <div class="saved-list" id="saved-list-container">
+      <!-- Rendered dynamically -->
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- VIEW: ONBOARDING (КАК ЭТО РАБОТАЕТ)        -->
+  <!-- ========================================== -->
+  <section class="view-container" id="view-onboarding">
+    <div class="onboarding-card">
+      <div class="onboarding-step-content" id="onboarding-content">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="onboarding-footer">
+        <div class="dots-indicator" id="onboarding-dots">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-secondary" id="btn-onboarding-prev" style="display:none;">
+            <span>Назад</span>
+          </button>
+          <button type="button" class="btn-primary" id="btn-onboarding-next">
+            <span>Далее</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- VIEW: SUPPORT (СЛУЖБА ПОДДЕРЖКИ)          -->
+  <!-- ========================================== -->
+  <section class="view-container" id="view-support">
+    <div class="support-card">
+      <div class="report-topline">
+        <button type="button" class="btn-action" id="btn-support-back">
+          <span>← Назад</span>
+        </button>
+        <span class="badge-subject">Служба заботы</span>
+      </div>
+
+      <h2 class="report-title">Поддержка и обратная связь</h2>
+      <p style="margin:0; font-size:14px; color:var(--ink-2); line-height:1.5;">
+        Мы готовы помочь с решением любых вопросов по работе приложения «Проект Маркли», принять ваши отзывы и предложения по развитию функционала.
+      </p>
+
+      <div class="support-channels">
+        <div class="support-box">
+          <span class="support-box-title">Официальное сообщество</span>
+          <span class="support-box-desc">Оперативные ответы в личных сообщениях группы сервиса</span>
+          <a href="https://vk.com/markly" target="_blank" rel="noopener noreferrer" class="btn-primary" style="margin-top:auto; justify-content:center; padding:10px;">
+            <span>Написать во ВКонтакте</span>
+          </a>
+        </div>
+
+        <div class="support-box">
+          <span class="support-box-title">Электронная почта</span>
+          <span class="support-box-desc">Для официальных запросов, партнёрств и предложений</span>
+          <a href="mailto:support@markly.ru" class="btn-secondary" style="margin-top:auto; justify-content:center; padding:10px;">
+            <span>support@markly.ru</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="tech-info-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="color:var(--ink);">Диагностическая информация</strong>
+          <button type="button" class="btn-action" id="btn-copy-tech-id" style="padding:4px 10px; font-size:11.5px;">
+            <span>Скопировать</span>
+          </button>
+        </div>
+        <div id="tech-id-text" style="font-family:monospace; word-break:break-all;">
+          VK ID: не авторизован · Платформа: Web
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- VIEW: PRIVACY (ПОЛИТИКА ВНУТРИ ПРИЛОЖЕНИЯ)  -->
+  <!-- ========================================== -->
+  <section class="view-container" id="view-privacy">
+    <div class="legal-reader">
+      <div class="report-topline">
+        <button type="button" class="btn-action" id="btn-privacy-back">
+          <span>← Назад</span>
+        </button>
+        <a href="privacy.html" target="_blank" rel="noopener noreferrer" class="btn-action">
+          <span>Открыть отдельной страницей ↗</span>
+        </a>
+      </div>
+      <h1>Политика конфиденциальности</h1>
+      <p><strong>Оператор сервиса и персональных данных:</strong> Общество с ограниченной ответственностью «Визуальный навигатор» (ООО «Визуальный навигатор»).</p>
+      <p><strong>Какие данные обрабатываются:</strong> открытые данные профиля ВКонтакте, передаваемые платформой при запуске мини-приложения через стандартный метод <code>VKWebAppGetUserInfo</code> и параметры запуска (идентификатор пользователя <code>vk_user_id</code>, имя, фамилия, ссылка на аватар профиля), а также пользовательские настройки фильтров (выбранные города и отрасли в локальном хранилище устройства).</p>
+      <p><strong>Цели обработки данных:</strong> предоставление функционала аналитического сервиса «Проект Маркли», персонализация интерфейса мини-приложения, проверка подлинности запросов к API и оказание технической поддержки пользователям.</p>
+      <p><strong>Хранение и безопасность:</strong> сервис не запрашивает доступ к личным сообщениям, паролям или платёжным данным, не публикует записи от имени пользователя без его явного действия и передаёт данные исключительно по защищённому протоколу HTTPS.</p>
+      <p><strong>Порядок удаления данных и отзыва согласия:</strong> пользователь может в любой момент очистить сохранённые отчёты в разделе «Сохранённые» внутри приложения, прекратить использование мини-приложения в настройках ВКонтакте, а также направить запрос на полное удаление любых связанных с его <code>vk_user_id</code> логов и данных через раздел «Поддержка» (в официальное сообщество сервиса во ВКонтакте или на электронную почту <a href="mailto:support@markly.ru">support@markly.ru</a>). Срок исполнения запроса — не более 10 рабочих дней.</p>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- VIEW: TERMS (СОГЛАШЕНИЕ ВНУТРИ ПРИЛОЖЕНИЯ)  -->
+  <!-- ========================================== -->
+  <section class="view-container" id="view-terms">
+    <div class="legal-reader">
+      <div class="report-topline">
+        <button type="button" class="btn-action" id="btn-terms-back">
+          <span>← Назад</span>
+        </button>
+        <a href="terms.html" target="_blank" rel="noopener noreferrer" class="btn-action">
+          <span>Открыть отдельной страницей ↗</span>
+        </a>
+      </div>
+      <h1>Пользовательское соглашение</h1>
+      <p><strong>Оператор сервиса:</strong> Общество с ограниченной ответственностью «Визуальный навигатор» (ООО «Визуальный навигатор»).</p>
+      <p><strong>Предмет соглашения:</strong> Предоставление пользователю аналитического инструмента «Проект Маркли» для исследования целевой аудитории, сообществ и ключевых метрик активности во ВКонтакте.</p>
+      <p><strong>Условия использования:</strong> Пользователь использует функционал сервиса для подготовки бизнес-аналитики. Данные носят информационно-рекомендательный характер. Администрация обеспечивает стабильное функционирование приложения и защиту конфиденциальности данных.</p>
+      <p><strong>Техническая поддержка:</strong> Обращения принимаются через официальное сообщество сервиса во ВКонтакте и по адресу <a href="mailto:support@markly.ru">support@markly.ru</a>.</p>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- UI FEEDBACK STATES (LOADING, EMPTY, ERROR) -->
+  <!-- ========================================== -->
+  <div class="state-box" id="global-loading" style="display:none;">
+    <div class="spinner"></div>
+    <h3 class="state-title">Загрузка данных…</h3>
+    <p class="state-desc">Формируем аналитическую сводку по выбранным параметрам.</p>
   </div>
 
-  <div class="hero">
-    <h1>Живой срез базы малого бизнеса ВК</h1>
-    <p>
-      Ранняя версия витрины поверх системы сбора данных для NCA&#8209;RS — рекомендательной
-      системы привлечения новых клиентов. Ниже — реальные цифры прямо из базы:
-      <strong>17&nbsp;336</strong> целевых сообществ в четырёх предметных областях,
-      их посты и участники с полностью собранным профилем.
+  <div class="state-box" id="global-empty" style="display:none;">
+    <div style="font-size:36px;">🔍</div>
+    <h3 class="state-title">По выбранным параметрам пока нет данных</h3>
+    <p class="state-desc" id="empty-desc-text">
+      Попробуйте выбрать другой город или указать фильтр «Вся Россия», чтобы увидеть общую статистику по направлению.
     </p>
+    <button type="button" class="btn-primary" id="btn-empty-back">
+      <span>Назад к фильтрам</span>
+    </button>
   </div>
 
-  <div class="stats">
-    <div class="stat">
-      <div class="value">17 336</div>
-      <div class="label">сообществ в целевой выборке</div>
-    </div>
-    <div class="stat">
-      <div class="value">1 345 954</div>
-      <div class="label">постов собрано</div>
-      <div class="sub">99,3% сообществ</div>
-    </div>
-    <div class="stat">
-      <div class="value">755 359</div>
-      <div class="label">пользователей с демографией</div>
-    </div>
-    <div class="stat">
-      <div class="value">35 198</div>
-      <div class="label">с полным профилем — демография + подписки + посты</div>
-    </div>
-  </div>
-
-  <section>
-    <h2>Сообщества по предметным областям</h2>
-    <p class="section-note">Классификация по 4 областям статьи. Сумма превышает 17&nbsp;336 — часть сообществ отнесена сразу к нескольким областям.</p>
-    <div class="subjects">
-      <div class="subject-row">
-        <span class="subject-name">Доставка еды</span>
-        <div class="subject-track"><div class="subject-fill" style="--w: 100%"></div></div>
-        <div class="subject-figures">
-          <span class="groups">7 100 групп</span>
-          <span class="meta">592 656 постов · 99,5%</span>
-        </div>
-      </div>
-      <div class="subject-row">
-        <span class="subject-name">Общепит и кафе</span>
-        <div class="subject-track"><div class="subject-fill" style="--w: 83%"></div></div>
-        <div class="subject-figures">
-          <span class="groups">5 890 групп</span>
-          <span class="meta">502 225 постов · 99,6%</span>
-        </div>
-      </div>
-      <div class="subject-row">
-        <span class="subject-name">Привлечение клиентов</span>
-        <div class="subject-track"><div class="subject-fill" style="--w: 63%"></div></div>
-        <div class="subject-figures">
-          <span class="groups">4 471 групп</span>
-          <span class="meta">307 676 постов · 99,1%</span>
-        </div>
-      </div>
-      <div class="subject-row">
-        <span class="subject-name">Тендерное сопровождение</span>
-        <div class="subject-track"><div class="subject-fill" style="--w: 19.5%"></div></div>
-        <div class="subject-figures">
-          <span class="groups">1 384 групп</span>
-          <span class="meta">78 518 постов · 98,5%</span>
-        </div>
-      </div>
-      <div class="legend-row"><span class="legend-swatch"></span>ширина полосы — число групп в области</div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Воронка по пользователям</h2>
-    <p class="section-note">Демография собирается для всех подряд; подписки и посты со стены — отдельные, более тяжёлые этапы.</p>
-    <div class="funnel">
-      <div class="funnel-row">
-        <span class="funnel-name">Пользователей в базе</span>
-        <span class="funnel-value">1 814 810</span>
-      </div>
-      <div class="funnel-track"><div class="funnel-fill" style="--w: 100%"></div></div>
-
-      <div class="funnel-row">
-        <span class="funnel-name">— с демографией</span>
-        <span class="funnel-value">755 359</span>
-      </div>
-      <div class="funnel-track"><div class="funnel-fill" style="--w: 41.6%"></div></div>
-
-      <div class="funnel-row">
-        <span class="funnel-name">— с подписками на группы</span>
-        <span class="funnel-value">121 559</span>
-      </div>
-      <div class="funnel-track"><div class="funnel-fill" style="--w: 6.7%"></div></div>
-
-      <div class="funnel-row">
-        <span class="funnel-name">— с полным профилем (демография + подписки + посты)</span>
-        <span class="funnel-value">35 198</span>
-      </div>
-      <div class="funnel-track"><div class="funnel-fill" style="--w: 1.9%"></div></div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Разбор по предметной области</h2>
-    <p class="section-note">Выберите область и, при желании, город — покажем сводку и топ-5 постов по вовлечённости (лайки + репосты + комментарии).</p>
-    <div class="explorer">
-      <div class="explorer-controls">
-        <div class="field">
-          <label for="subject-select">Предметная область</label>
-          <select id="subject-select"></select>
-        </div>
-        <div class="field">
-          <label for="city-select">Город</label>
-          <select id="city-select"><option value="">Все города</option></select>
-        </div>
-      </div>
-
-      <div id="explorer-state" class="explorer-state">Загрузка…</div>
-
-      <div id="explorer-results" style="display:none; flex-direction:column; gap:14px;">
-        <div class="explorer-summary">
-          <div class="mini-stat"><span class="value" id="stat-groups">—</span><span class="label">групп</span></div>
-          <div class="mini-stat"><span class="value" id="stat-posts">—</span><span class="label">постов</span></div>
-          <div class="mini-stat"><span class="value" id="stat-likes">—</span><span class="label">лайков всего</span></div>
-          <div class="mini-stat"><span class="value" id="stat-reposts">—</span><span class="label">репостов всего</span></div>
-        </div>
-        <div class="top-posts" id="top-posts"></div>
-      </div>
-    </div>
-  </section>
-
-  <div class="mvp-note">
-    <span class="mark">MVP</span>
-    <p>
-      Это первая, намеренно простая версия витрины. Сводка и топ-5 постов выше — уже
-      живые данные (кэш обновляется каждые 15 минут). Дальше: полноценная VK ID
-      авторизация с серверной проверкой подписи и обновление без кэша.
+  <div class="state-box" id="global-error" style="display:none;">
+    <div style="font-size:36px;">⚠️</div>
+    <h3 class="state-title">Не удалось загрузить данные</h3>
+    <p class="state-desc" id="error-desc-text">
+      Проверьте подключение к сети и попробуйте снова.
     </p>
+    <button type="button" class="btn-primary" id="btn-error-retry">
+      <span>Повторить попытку</span>
+    </button>
   </div>
 
-  <footer id="app-footer">Клиентский Радар · научно-исследовательский проект NCA&#8209;RS</footer>
+  <!-- ========================================== -->
+  <!-- FOOTER                                     -->
+  <!-- ========================================== -->
+  <footer class="footer">
+    <div class="footer-links">
+      <button type="button" id="footer-btn-privacy">Политика конфиденциальности</button>
+      <span>·</span>
+      <button type="button" id="footer-btn-terms">Пользовательское соглашение</button>
+      <span>·</span>
+      <button type="button" id="footer-btn-support">Поддержка</button>
+    </div>
+    <div>
+      © 2026 ООО «Визуальный навигатор» · Сервис «Проект Маркли»
+    </div>
+  </footer>
 
 </div>
 
+<!-- TOAST MESSAGE -->
+<div class="toast" id="toast-el">Уведомление</div>
+
+<!-- VK BRIDGE SCRIPT -->
 <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+
 <script>
-  (function () {
-    // ---- VK Bridge init + пользователь ----
-    if (typeof vkBridge !== 'undefined') {
-      vkBridge.send('VKWebAppInit').then(function () {
-        var footer = document.getElementById('app-footer');
-        if (footer) footer.textContent += ' · открыто внутри VK';
-        return vkBridge.send('VKWebAppGetUserInfo');
-      }).then(function (user) {
-        if (!user) return;
+(function () {
+  'use strict';
+
+  // ========================================================
+  // 1. ИНИЦИАЛИЗАЦИЯ И ПЕРЕМЕННЫЕ СОСТОЯНИЯ
+  // ========================================================
+  var API_BASE = '/api';
+  var VK_LAUNCH_PARAMS = window.location.search.slice(1);
+  var currentUser = null;
+  var currentReportData = null;
+  var allSubjectsList = [];
+  var allCitiesList = [];
+  var onboardingStep = 0;
+
+  var ONBOARDING_DATA = [
+    {
+      title: '1. Выберите нишу бизнеса',
+      text: 'Сервис сегментирует активные сообщества по ключевым направлениям: B2B-привлечение клиентов, сопровождение тендеров, локальные услуги и другие секторы.'
+    },
+    {
+      title: '2. Укажите географию работы',
+      text: 'Исследуйте показатели в масштабе всей страны или выберите конкретный город для точечной оценки региональной конкуренции и аудитории.'
+    },
+    {
+      title: '3. Получайте выводы и рекомендации',
+      text: 'Изучайте суммарную активность, популярный контент с максимальной вовлечённостью и готовые маркетинговые советы для развития сообщества.'
+    }
+  ];
+
+  // DOM Elements
+  var viewHome = document.getElementById('view-home');
+  var viewResults = document.getElementById('view-results');
+  var viewSaved = document.getElementById('view-saved');
+  var viewOnboarding = document.getElementById('view-onboarding');
+  var viewSupport = document.getElementById('view-support');
+  var viewPrivacy = document.getElementById('view-privacy');
+  var viewTerms = document.getElementById('view-terms');
+
+  var viewsMap = {
+    'home': viewHome,
+    'results': viewResults,
+    'saved': viewSaved,
+    'onboarding': viewOnboarding,
+    'support': viewSupport,
+    'privacy': viewPrivacy,
+    'terms': viewTerms
+  };
+
+  var globalLoading = document.getElementById('global-loading');
+  var globalEmpty = document.getElementById('global-empty');
+  var globalError = document.getElementById('global-error');
+
+  var subjectSelect = document.getElementById('select-subject');
+  var citySelect = document.getElementById('select-city');
+  var toastEl = document.getElementById('toast-el');
+  var savedCounter = document.getElementById('saved-counter');
+
+  // ========================================================
+  // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+  // ========================================================
+  function showToast(msg) {
+    if (!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(function () {
+      toastEl.classList.remove('show');
+    }, 2800);
+  }
+
+  function fmt(n) {
+    return typeof n === 'number' ? n.toLocaleString('ru-RU') : '0';
+  }
+
+  function hideAllStates() {
+    globalLoading.style.display = 'none';
+    globalEmpty.style.display = 'none';
+    globalError.style.display = 'none';
+  }
+
+  // ========================================================
+  // 3. НАВИГАЦИЯ И ИСТОРИЯ (ПОДДЕРЖКА КНОПКИ «НАЗАД» ANDROID)
+  // ========================================================
+  function navigateTo(targetView, data, pushHistory) {
+    if (pushHistory === undefined) pushHistory = true;
+
+    hideAllStates();
+
+    Object.keys(viewsMap).forEach(function (v) {
+      if (viewsMap[v]) viewsMap[v].classList.remove('active');
+    });
+
+    var viewEl = viewsMap[targetView] || viewHome;
+    viewEl.classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (pushHistory) {
+      var stateObj = { view: targetView, data: data || null };
+      var hash = targetView === 'home' ? '' : '#' + targetView;
+      history.pushState(stateObj, '', window.location.pathname + window.location.search + hash);
+    }
+
+    if (targetView === 'saved') renderSavedList();
+    if (targetView === 'onboarding') renderOnboardingStep(0);
+  }
+
+  window.addEventListener('popstate', function (event) {
+    var state = event.state;
+    var target = (state && state.view) ? state.view : 'home';
+    navigateTo(target, state ? state.data : null, false);
+  });
+
+  // ========================================================
+  // 4. ТЕМАТИЧЕСКАЯ ИНТЕГРАЦИЯ VK BRIDGE
+  // ========================================================
+  function applyTheme(appearance) {
+    if (appearance === 'space_gray' || appearance === 'vkcom_dark' || appearance === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }
+
+  if (typeof vkBridge !== 'undefined') {
+    vkBridge.send('VKWebAppInit').then(function () {
+      return vkBridge.send('VKWebAppGetUserInfo');
+    }).then(function (user) {
+      if (user) {
+        currentUser = user;
         var badge = document.getElementById('user-badge');
-        var photo = document.getElementById('user-photo');
+        var avatar = document.getElementById('user-avatar');
         var name = document.getElementById('user-name');
-        if (user.photo_100) photo.src = user.photo_100;
+        if (user.photo_100) avatar.src = user.photo_100;
         name.textContent = [user.first_name, user.last_name].filter(Boolean).join(' ');
         badge.classList.add('visible');
-      }).catch(function () {
-        // Открыто вне VK (обычный браузер) или пользователь не дал доступ —
-        // страница остаётся полностью рабочей без бейджа.
-      });
-    }
 
-    // ---- Разбор по предметной области ----
-    var API_BASE = '/api';
-    var subjectSelect = document.getElementById('subject-select');
-    var citySelect = document.getElementById('city-select');
-    var stateEl = document.getElementById('explorer-state');
-    var resultsEl = document.getElementById('explorer-results');
-    var topPostsEl = document.getElementById('top-posts');
-
-    function fmt(n) {
-      return typeof n === 'number' ? n.toLocaleString('ru-RU') : '—';
-    }
-
-    function renderPost(post) {
-      var card = document.createElement('a');
-      card.className = 'post-card';
-      card.href = post.url;
-      card.target = '_blank';
-      card.rel = 'noopener noreferrer';
-
-      var meta = document.createElement('div');
-      meta.className = 'post-meta';
-      var group = document.createElement('span');
-      group.className = 'post-group';
-      group.textContent = post.group_name + (post.city ? ' · ' + post.city : '');
-      meta.appendChild(group);
-      if (post.published_at) {
-        var date = document.createElement('span');
-        date.textContent = new Date(post.published_at).toLocaleDateString('ru-RU');
-        meta.appendChild(date);
+        var techIdText = document.getElementById('tech-id-text');
+        if (techIdText) {
+          techIdText.textContent = 'VK ID: ' + user.id + ' (' + user.first_name + ' ' + user.last_name + ') · Платформа: VK Mini Apps';
+        }
       }
-      card.appendChild(meta);
+    }).catch(function () {
+      // Запуск вне клиента ВК — тихий фоллбэк
+      var techIdText = document.getElementById('tech-id-text');
+      if (techIdText) {
+        techIdText.textContent = 'Клиентский запуск в браузере · Платформа: Web';
+      }
+    });
 
-      var text = document.createElement('div');
-      text.className = 'post-text';
-      text.textContent = post.text || '(без текста)';
-      card.appendChild(text);
+    vkBridge.subscribe(function (event) {
+      if (!event || !event.detail) return;
+      var type = event.detail.type;
+      var data = event.detail.data;
+      if (type === 'VKWebAppUpdateConfig') {
+        var appTheme = data.scheme || data.appearance;
+        if (appTheme) applyTheme(appTheme);
+      }
+    });
+  }
 
-      var engagement = document.createElement('div');
-      engagement.className = 'post-engagement';
-      engagement.innerHTML =
-        '<span>♥ ' + fmt(post.likes) + '</span>' +
-        '<span>↻ ' + fmt(post.reposts) + '</span>' +
-        '<span>💬 ' + fmt(post.comments) + '</span>';
-      card.appendChild(engagement);
+  // ========================================================
+  // 5. ЗАПРОСЫ К API С ТАЙМАУТОМ И ПОДПИСЬЮ
+  // ========================================================
+  function fetchWithTimeout(url, options, timeoutMs) {
+    timeoutMs = timeoutMs || 10000;
+    var controller = new AbortController();
+    var signal = controller.signal;
+    var opts = Object.assign({}, options, { signal: signal });
 
-      return card;
+    opts.headers = opts.headers || {};
+    if (VK_LAUNCH_PARAMS) {
+      opts.headers['X-VK-Launch-Params'] = VK_LAUNCH_PARAMS;
     }
 
-    function loadStats() {
-      var subject = subjectSelect.value;
-      var city = citySelect.value;
-      if (!subject) return;
+    var timeoutId = setTimeout(function () {
+      controller.abort();
+    }, timeoutMs);
 
-      resultsEl.style.display = 'none';
-      stateEl.style.display = 'block';
-      stateEl.className = 'explorer-state';
-      stateEl.textContent = 'Загрузка…';
+    return fetch(url, opts).then(function (res) {
+      clearTimeout(timeoutId);
+      return res;
+    }).catch(function (err) {
+      clearTimeout(timeoutId);
+      throw err;
+    });
+  }
 
-      var url = API_BASE + '/stats?subject=' + encodeURIComponent(subject) +
-        (city ? '&city=' + encodeURIComponent(city) : '');
+  // ========================================================
+  // 6. ЗАГРУЗКА СПИСКОВ ОТРАСЛЕЙ И ГОРОДОВ
+  // ========================================================
+  function loadInitialMeta() {
+    Promise.all([
+      fetchWithTimeout(API_BASE + '/subjects').then(function (r) { return r.json(); }),
+      fetchWithTimeout(API_BASE + '/cities').then(function (r) { return r.json(); }).catch(function () { return []; })
+    ]).then(function (results) {
+      allSubjectsList = results[0] || [];
+      allCitiesList = results[1] || [];
 
-      fetch(url).then(function (response) {
-        if (!response.ok) {
-          return response.json().then(function (body) {
-            throw new Error(body.detail || 'Ошибка загрузки');
+      // Заполняем отрасли
+      subjectSelect.innerHTML = '';
+      allSubjectsList.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = s.key;
+        opt.textContent = s.title;
+        subjectSelect.appendChild(opt);
+      });
+
+      // Заполняем города
+      citySelect.innerHTML = '<option value="">Вся Россия (все города)</option>';
+      allCitiesList.forEach(function (c) {
+        var opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        citySelect.appendChild(opt);
+      });
+
+      updateSavedCounter();
+
+      // Проверяем первый вход для показа онбординга
+      if (!localStorage.getItem('markly_onboarding_seen_v1')) {
+        navigateTo('onboarding', null, true);
+      }
+    }).catch(function () {
+      showToast('Не удалось загрузить справочники направлений');
+    });
+  }
+
+  // ========================================================
+  // 7. ПОЛУЧЕНИЕ И ОТОБРАЖЕНИЕ АНАЛИТИКИ
+  // ========================================================
+  function requestAnalytics(subjectKey, cityName) {
+    if (!subjectKey) {
+      showToast('Пожалуйста, выберите направление бизнеса');
+      return;
+    }
+
+    hideAllStates();
+    viewsMap['home'].classList.remove('active');
+    viewsMap['results'].classList.remove('active');
+    globalLoading.style.display = 'flex';
+
+    var queryUrl = API_BASE + '/stats?subject=' + encodeURIComponent(subjectKey) +
+      (cityName ? '&city=' + encodeURIComponent(cityName) : '');
+
+    fetchWithTimeout(queryUrl)
+      .then(function (response) {
+        if (response.status === 404) {
+          return response.json().then(function (errData) {
+            throw { isNotFound: true, message: errData.detail };
           });
+        }
+        if (!response.ok) {
+          throw { isError: true };
         }
         return response.json();
-      }).then(function (data) {
-        document.getElementById('stat-groups').textContent = fmt(data.groups_total);
-        document.getElementById('stat-posts').textContent = fmt(data.posts_total);
-        document.getElementById('stat-likes').textContent = fmt(data.likes_total);
-        document.getElementById('stat-reposts').textContent = fmt(data.reposts_total);
-
-        topPostsEl.innerHTML = '';
-        if (data.top_posts && data.top_posts.length) {
-          data.top_posts.forEach(function (post) {
-            topPostsEl.appendChild(renderPost(post));
-          });
+      })
+      .then(function (data) {
+        hideAllStates();
+        currentReportData = data;
+        renderReportView(data);
+        navigateTo('results', { subject: subjectKey, city: cityName }, true);
+      })
+      .catch(function (err) {
+        hideAllStates();
+        if (err && err.isNotFound) {
+          var descEl = document.getElementById('empty-desc-text');
+          if (descEl) descEl.textContent = err.message || 'По выбранным параметрам пока недостаточно данных.';
+          globalEmpty.style.display = 'flex';
         } else {
-          var empty = document.createElement('div');
-          empty.className = 'explorer-state';
-          empty.textContent = 'Постов с вовлечённостью пока нет для этого сочетания.';
-          topPostsEl.appendChild(empty);
+          var errDesc = document.getElementById('error-desc-text');
+          if (errDesc) errDesc.textContent = 'Не удалось загрузить данные. Проверьте соединение с сетью.';
+          globalError.style.display = 'flex';
         }
-
-        stateEl.style.display = 'none';
-        resultsEl.style.display = 'flex';
-      }).catch(function (error) {
-        stateEl.className = 'explorer-state error';
-        stateEl.textContent = error.message || 'Не удалось загрузить данные.';
       });
+  }
+
+  function renderReportView(data) {
+    document.getElementById('res-badge-subject').textContent = data.subject_title || 'Бизнес-направление';
+    document.getElementById('res-badge-city').textContent = data.city || 'Вся Россия';
+    document.getElementById('res-title').textContent = data.subject_title + (data.city ? ' · ' + data.city : '');
+
+    document.getElementById('res-stat-groups').textContent = fmt(data.groups_total);
+    document.getElementById('res-stat-posts').textContent = fmt(data.posts_total);
+
+    var totalEngagement = (data.likes_total || 0) + (data.reposts_total || 0) + (data.comments_total || 0);
+    document.getElementById('res-stat-engagement').textContent = fmt(totalEngagement);
+    document.getElementById('res-stat-likes').textContent = fmt(data.likes_total);
+    document.getElementById('res-stat-reposts').textContent = fmt(data.reposts_total);
+    document.getElementById('res-stat-comments').textContent = fmt(data.comments_total);
+
+    // Генерация рекомендаций
+    var insightsContainer = document.getElementById('res-insights-list');
+    insightsContainer.innerHTML = '';
+
+    var avgPostsPerGroup = data.groups_total > 0 ? (data.posts_total / data.groups_total).toFixed(1) : '0';
+    var avgEngagementPerPost = data.posts_total > 0 ? (totalEngagement / data.posts_total).toFixed(1) : '0';
+
+    var ins1 = document.createElement('div');
+    ins1.className = 'insight-item teal';
+    ins1.innerHTML =
+      '<div class="insight-item-title">Плотность контента и частота публикаций</div>' +
+      '<div class="insight-item-text">В среднем на одно активное сообщество в нише приходится <strong>' +
+      avgPostsPerGroup + ' публикаций</strong>. Для стабильного удержания охвата рекомендуется выпускать не менее 3–4 структурированных материалов в неделю.</div>';
+    insightsContainer.appendChild(ins1);
+
+    var ins2 = document.createElement('div');
+    ins2.className = 'insight-item amber';
+    ins2.innerHTML =
+      '<div class="insight-item-title">Индекс отклика аудитории</div>' +
+      '<div class="insight-item-text">Средний показатель активности составляет <strong>' +
+      avgEngagementPerPost + ' реакций на публикацию</strong>. В нише «' + (data.subject_title || '') +
+      '» наибольший отклик вызывают практические разборы задач клиентов, наглядные кейсы и экспертные рекомендации.</div>';
+    insightsContainer.appendChild(ins2);
+
+    var ins3 = document.createElement('div');
+    ins3.className = 'insight-item';
+    ins3.innerHTML =
+      '<div class="insight-item-title">Потенциал вирального распространения</div>' +
+      '<div class="insight-item-text">Зафиксировано <strong>' + fmt(data.reposts_total) +
+      ' репостов</strong>. Регулярная публикация полезных памяток, чек-листов и регламентов обеспечивает органический приток новых подписчиков без дополнительных рекламных затрат.</div>';
+    insightsContainer.appendChild(ins3);
+
+    // Публикации с максимальной активностью
+    var postsContainer = document.getElementById('res-posts-list');
+    postsContainer.innerHTML = '';
+
+    if (data.top_posts && data.top_posts.length > 0) {
+      data.top_posts.forEach(function (post) {
+        var card = document.createElement('div');
+        card.className = 'post-card';
+
+        var pubDate = post.published_at ? new Date(post.published_at).toLocaleDateString('ru-RU') : '';
+
+        card.innerHTML =
+          '<div class="post-meta-top">' +
+            '<span class="post-community">' + (post.group_name || 'Сообщество ВКонтакте') + (post.city ? ' · ' + post.city : '') + '</span>' +
+            '<span class="post-date">' + pubDate + '</span>' +
+          '</div>' +
+          '<div class="post-body-text">' + (post.text || 'Публикация с визуальным медиа-контентом') + '</div>' +
+          '<div class="post-stats-row">' +
+            '<div class="post-counters">' +
+              '<span class="post-counter-item likes">♥ ' + fmt(post.likes) + '</span>' +
+              '<span class="post-counter-item reposts">↻ ' + fmt(post.reposts) + '</span>' +
+              '<span class="post-counter-item comments">💬 ' + fmt(post.comments) + '</span>' +
+            '</div>' +
+            '<a href="' + (post.url || '#') + '" target="_blank" rel="noopener noreferrer" class="post-open-link">' +
+              '<span>Открыть пост</span> ↗' +
+            '</a>' +
+          '</div>';
+
+        postsContainer.appendChild(card);
+      });
+    } else {
+      var noPosts = document.createElement('div');
+      noPosts.style.padding = '20px';
+      noPosts.style.textAlign = 'center';
+      noPosts.style.color = 'var(--muted)';
+      noPosts.textContent = 'Публикаций для данного среза пока не зафиксировано.';
+      postsContainer.appendChild(noPosts);
+    }
+  }
+
+  // ========================================================
+  // 8. СОХРАНЕНИЕ И УПРАВЛЕНИЕ ОТЧЁТАМИ
+  // ========================================================
+  function getSavedReports() {
+    try {
+      return JSON.parse(localStorage.getItem('markly_saved_reports_v1') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCurrentReport() {
+    if (!currentReportData) return;
+    var list = getSavedReports();
+    var id = (currentReportData.subject || '') + '::' + (currentReportData.city || 'all');
+
+    // Проверяем, не сохранён ли уже
+    var existingIdx = -1;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) { existingIdx = i; break; }
     }
 
-    Promise.all([
-      fetch(API_BASE + '/subjects').then(function (r) { return r.json(); }),
-      fetch(API_BASE + '/cities').then(function (r) { return r.json(); }).catch(function () { return []; }),
-    ]).then(function (results) {
-      var subjects = results[0];
-      var cities = results[1];
+    var reportItem = {
+      id: id,
+      subject: currentReportData.subject,
+      subject_title: currentReportData.subject_title,
+      city: currentReportData.city,
+      groups_total: currentReportData.groups_total,
+      posts_total: currentReportData.posts_total,
+      savedAt: new Date().toLocaleDateString('ru-RU')
+    };
 
-      subjects.forEach(function (s) {
-        var option = document.createElement('option');
-        option.value = s.key;
-        option.textContent = s.title;
-        subjectSelect.appendChild(option);
+    if (existingIdx >= 0) {
+      list[existingIdx] = reportItem;
+      showToast('Отчёт обновлён в разделе «Сохранённые»');
+    } else {
+      list.unshift(reportItem);
+      showToast('Отчёт сохранён в разделе «Сохранённые»');
+    }
+
+    localStorage.setItem('markly_saved_reports_v1', JSON.stringify(list));
+    updateSavedCounter();
+  }
+
+  function updateSavedCounter() {
+    var count = getSavedReports().length;
+    if (savedCounter) {
+      savedCounter.textContent = count;
+      if (count > 0) {
+        savedCounter.classList.add('has-items');
+      } else {
+        savedCounter.classList.remove('has-items');
+      }
+    }
+  }
+
+  function renderSavedList() {
+    var list = getSavedReports();
+    var container = document.getElementById('saved-list-container');
+    container.innerHTML = '';
+
+    if (list.length === 0) {
+      container.innerHTML =
+        '<div class="state-box">' +
+          '<div style="font-size:32px;">📑</div>' +
+          '<h3 class="state-title">У вас пока нет сохранённых отчётов</h3>' +
+          '<p class="state-desc">Выбирайте интересующие направления бизнеса и сохраняйте их в один клик для быстрого возврата.</p>' +
+          '<button type="button" class="btn-primary" id="btn-saved-go-search">Перейти к поиску</button>' +
+        '</div>';
+
+      var btnGo = document.getElementById('btn-saved-go-search');
+      if (btnGo) btnGo.addEventListener('click', function () { navigateTo('home'); });
+      return;
+    }
+
+    list.forEach(function (item) {
+      var card = document.createElement('div');
+      card.className = 'saved-item-card';
+
+      card.innerHTML =
+        '<div class="saved-item-info">' +
+          '<span class="saved-item-title">' + (item.subject_title || item.subject) + '</span>' +
+          '<div class="saved-item-meta">' +
+            '<span>Локация: ' + (item.city || 'Вся Россия') + '</span>' +
+            '<span>·</span>' +
+            '<span>Сохранено: ' + item.savedAt + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="saved-item-actions">' +
+          '<button type="button" class="btn-action primary btn-open-saved-item">Открыть</button>' +
+          '<button type="button" class="btn-action btn-del-saved-item" style="color:var(--danger);">Удалить</button>' +
+        '</div>';
+
+      card.querySelector('.btn-open-saved-item').addEventListener('click', function () {
+        subjectSelect.value = item.subject;
+        citySelect.value = item.city || '';
+        requestAnalytics(item.subject, item.city || null);
       });
 
-      cities.forEach(function (c) {
-        var option = document.createElement('option');
-        option.value = c;
-        option.textContent = c;
-        citySelect.appendChild(option);
+      card.querySelector('.btn-del-saved-item').addEventListener('click', function () {
+        var updated = getSavedReports().filter(function (r) { return r.id !== item.id; });
+        localStorage.setItem('markly_saved_reports_v1', JSON.stringify(updated));
+        updateSavedCounter();
+        renderSavedList();
+        showToast('Отчёт удалён');
       });
 
-      subjectSelect.addEventListener('change', loadStats);
-      citySelect.addEventListener('change', loadStats);
-      loadStats();
-    }).catch(function () {
-      stateEl.className = 'explorer-state error';
-      stateEl.textContent = 'API сейчас недоступен.';
+      container.appendChild(card);
     });
-  })();
+  }
+
+  // ========================================================
+  // 9. ОНБОРДИНГ
+  // ========================================================
+  function renderOnboardingStep(step) {
+    onboardingStep = step;
+    var contentEl = document.getElementById('onboarding-content');
+    var btnPrev = document.getElementById('btn-onboarding-prev');
+    var btnNext = document.getElementById('btn-onboarding-next');
+    var dots = document.querySelectorAll('#onboarding-dots .dot');
+
+    var cur = ONBOARDING_DATA[step];
+    contentEl.innerHTML =
+      '<div class="onboarding-num">' + (step + 1) + '</div>' +
+      '<h2 class="onboarding-step-title">' + cur.title + '</h2>' +
+      '<p class="onboarding-step-text">' + cur.text + '</p>';
+
+    dots.forEach(function (d, i) {
+      if (i === step) d.classList.add('active');
+      else d.classList.remove('active');
+    });
+
+    btnPrev.style.display = step === 0 ? 'none' : 'inline-flex';
+    btnNext.textContent = step === ONBOARDING_DATA.length - 1 ? 'Начать работу' : 'Далее';
+  }
+
+  // ========================================================
+  // 10. ОБРАБОТЧИКИ СОБЫТИЙ ИНТЕРФЕЙСА
+  // ========================================================
+  document.getElementById('brand-logo-btn').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-open-how').addEventListener('click', function () {
+    navigateTo('onboarding');
+  });
+
+  document.getElementById('btn-open-saved').addEventListener('click', function () {
+    navigateTo('saved');
+  });
+
+  document.getElementById('btn-open-support').addEventListener('click', function () {
+    navigateTo('support');
+  });
+
+  document.getElementById('footer-btn-support').addEventListener('click', function () {
+    navigateTo('support');
+  });
+
+  document.getElementById('footer-btn-privacy').addEventListener('click', function () {
+    navigateTo('privacy');
+  });
+
+  document.getElementById('footer-btn-terms').addEventListener('click', function () {
+    navigateTo('terms');
+  });
+
+  document.getElementById('btn-hero-explore').addEventListener('click', function () {
+    var el = document.getElementById('configurator-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('btn-hero-guide').addEventListener('click', function () {
+    navigateTo('onboarding');
+  });
+
+  document.getElementById('btn-results-back').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-saved-back').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-support-back').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-privacy-back').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-terms-back').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-empty-back').addEventListener('click', function () {
+    navigateTo('home');
+  });
+
+  document.getElementById('btn-error-retry').addEventListener('click', function () {
+    var sub = subjectSelect.value;
+    var cty = citySelect.value;
+    requestAnalytics(sub, cty);
+  });
+
+  document.getElementById('btn-saved-clear-all').addEventListener('click', function () {
+    if (confirm('Очистить все сохранённые отчёты?')) {
+      localStorage.removeItem('markly_saved_reports_v1');
+      updateSavedCounter();
+      renderSavedList();
+      showToast('Все отчёты очищены');
+    }
+  });
+
+  // Пресеты
+  document.querySelectorAll('.preset-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      var presetKey = card.getAttribute('data-preset');
+      subjectSelect.value = presetKey;
+      citySelect.value = '';
+      requestAnalytics(presetKey, null);
+    });
+  });
+
+  // Поиск
+  document.getElementById('btn-submit-search').addEventListener('click', function () {
+    var sub = subjectSelect.value;
+    var cty = citySelect.value;
+    requestAnalytics(sub, cty);
+  });
+
+  // Сохранить отчёт
+  document.getElementById('btn-save-report').addEventListener('click', function () {
+    saveCurrentReport();
+  });
+
+  // Скопировать резюме
+  document.getElementById('btn-copy-summary').addEventListener('click', function () {
+    if (!currentReportData) return;
+    var textSummary = 'Аналитическая сводка: ' + currentReportData.subject_title +
+      (currentReportData.city ? ' (' + currentReportData.city + ')' : ' (Вся Россия)') + '\n' +
+      '• Сообществ: ' + fmt(currentReportData.groups_total) + '\n' +
+      '• Публикаций: ' + fmt(currentReportData.posts_total) + '\n' +
+      '• Суммарная активность: ' + fmt((currentReportData.likes_total || 0) + (currentReportData.reposts_total || 0) + (currentReportData.comments_total || 0)) + '\n' +
+      'Сервис бизнес-аналитики «Проект Маркли» https://vk.com/app54674554';
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textSummary).then(function () {
+        showToast('Резюме отчёта скопировано в буфер обмена');
+      });
+    } else {
+      showToast('Скопировано');
+    }
+  });
+
+  // Поделиться
+  document.getElementById('btn-share-report').addEventListener('click', function () {
+    var shareUrl = 'https://vk.com/app54674554';
+    if (typeof vkBridge !== 'undefined') {
+      vkBridge.send('VKWebAppShare', { link: shareUrl }).catch(function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(shareUrl).then(function () {
+            showToast('Ссылка на приложение скопирована');
+          });
+        }
+      });
+    } else {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(function () {
+          showToast('Ссылка скопирована');
+        });
+      }
+    }
+  });
+
+  // Скопировать технический ID в поддержке
+  document.getElementById('btn-copy-tech-id').addEventListener('click', function () {
+    var techText = document.getElementById('tech-id-text').textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(techText).then(function () {
+        showToast('Диагностические данные скопированы');
+      });
+    }
+  });
+
+  // Шаги онбординга
+  document.getElementById('btn-onboarding-prev').addEventListener('click', function () {
+    if (onboardingStep > 0) renderOnboardingStep(onboardingStep - 1);
+  });
+
+  document.getElementById('btn-onboarding-next').addEventListener('click', function () {
+    if (onboardingStep < ONBOARDING_DATA.length - 1) {
+      renderOnboardingStep(onboardingStep + 1);
+    } else {
+      localStorage.setItem('markly_onboarding_seen_v1', 'true');
+      navigateTo('home');
+    }
+  });
+
+  // Запуск
+  loadInitialMeta();
+
+})();
 </script>
 
 </body>
