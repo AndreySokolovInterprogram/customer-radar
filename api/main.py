@@ -68,6 +68,17 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "frame-ancestors 'self' https://vk.com https://*.vk.com https://m.vk.com https://*.vk-apps.com;"
+    )
+    return response
+
+
 def verify_vk_sign(launch_params_raw: str, secret_key: str) -> bool:
     """Проверяет подпись sign параметров запуска VK Mini Apps по стандарту HMAC-SHA256."""
     if not launch_params_raw or not secret_key:

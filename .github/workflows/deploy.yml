@@ -46,13 +46,6 @@ jobs:
             api/ \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/api/"
 
-      - name: Inspect systemd service
-        run: |
-          ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "cat /etc/systemd/system/customer-radar-api.service 2>&1 || true"
-
-
       - name: Write VK secret key (if configured)
         env:
           VK_SECRET_KEY: ${{ secrets.VK_SECRET_KEY }}
@@ -61,7 +54,10 @@ jobs:
             echo "VK_SECRET_KEY not set, skipping"
             exit 0
           fi
-          printf 'VK_SECRET_KEY=%s\n' "$VK_SECRET_KEY" > vk_secret_key.env
+          printf 'VK_SECRET_KEY=%s\nVK_SECURE_KEY=%s\n' "$VK_SECRET_KEY" "$VK_SECRET_KEY" > vk_secret_key.env
+          scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
+            vk_secret_key.env \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/api.env"
           scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             vk_secret_key.env \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/.env"
