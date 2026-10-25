@@ -48,19 +48,10 @@ jobs:
 
       - name: Update Nginx configuration (if permitted)
         run: |
-          scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
-            nginx.vk.markly.ru.conf \
-            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/nginx.vk.markly.ru.conf"
           ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "if sudo -n cp /tmp/nginx.vk.markly.ru.conf /etc/nginx/sites-available/vk.markly.ru.conf 2>/dev/null; then
-               sudo -n ln -sf /etc/nginx/sites-available/vk.markly.ru.conf /etc/nginx/sites-enabled/vk.markly.ru.conf 2>/dev/null || true
-               if sudo -n nginx -t 2>/dev/null; then
-                 sudo -n systemctl reload nginx 2>/dev/null || true
-                 echo 'Nginx configuration updated and reloaded.'
-               fi
-             fi
-             rm -f /tmp/nginx.vk.markly.ru.conf"
+            "sudo -n -l 2>&1 || true; ls -la /etc/nginx/sites-enabled/ 2>&1 || true"
+
 
       - name: Write VK secret key (if configured)
         env:
