@@ -46,11 +46,11 @@ jobs:
             api/ \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/api/"
 
-      - name: Update Nginx configuration (if permitted)
+      - name: Inspect systemd service
         run: |
           ssh -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "ls -la /etc/nginx/sites-available/customer-radar; id; cat /etc/nginx/sites-available/customer-radar"
+            "cat /etc/systemd/system/customer-radar-api.service 2>&1 || true"
 
 
       - name: Write VK secret key (if configured)
