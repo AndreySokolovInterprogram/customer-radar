@@ -63,7 +63,7 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "OPTIONS"],
+    allow_methods=["GET", "HEAD", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -164,7 +164,7 @@ def _read_data_raw(key: str) -> Optional[object]:
         return None
 
 
-@app.get("/api/subjects")
+@app.api_route("/api/subjects", methods=["GET", "HEAD"])
 async def subjects(request: Request):
     """Список поддерживаемых отраслей бизнеса."""
     check_request_sign(request)
@@ -178,7 +178,7 @@ async def subjects(request: Request):
     ]
 
 
-@app.get("/api/cities")
+@app.api_route("/api/cities", methods=["GET", "HEAD"])
 async def cities(request: Request):
     """Список доступных городов с собранной аналитикой."""
     check_request_sign(request)
@@ -186,7 +186,7 @@ async def cities(request: Request):
     return data if isinstance(data, list) else []
 
 
-@app.get("/api/stats")
+@app.api_route("/api/stats", methods=["GET", "HEAD"])
 async def stats(
     request: Request,
     subject: str = Query(..., description="Ключ предметной области"),
