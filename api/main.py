@@ -151,7 +151,6 @@ app.add_middleware(
         "http://127.0.0.1:8000",
         "http://localhost:3000",
         "http://localhost:5173",
-        "*",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "HEAD", "OPTIONS"],
@@ -402,7 +401,7 @@ def _generate_niche_and_keywords(
                     stop_words=list(RUSSIAN_STOP_WORDS),
                 )
                 vec.fit([full_corpus])
-                terms = vec.get_feature_names_out()
+                terms = vec.get_feature_names_out() if hasattr(vec, "get_feature_names_out") else vec.get_feature_names()
                 for t in terms:
                     t_str = t.strip()
                     if len(t_str) > 3 and t_str not in extracted_keywords and not t_str.isdigit():
@@ -716,21 +715,36 @@ def _run_ml_pipeline_sklearn(
     feedback: list[ActiveLearningItem],
 ) -> ClassifyGroupsResponse:
     """Основной пайплайн скоринга на базе scikit-learn + numpy."""
+    if not candidates:
+        return _build_classified_response([], np.array([]), {})
+
     query_doc = clean_text(f"{niche_title} {' '.join(keywords)}")
     docs = [
         clean_text(f"{c.get('name', '')} {c.get('activity', '')} {c.get('description', '')}")
         for c in candidates
     ]
+    all_corpus = [query_doc] + docs
+
+    if not any(all_corpus):
+        return _run_ml_pipeline_fallback(niche_title, keywords, candidates, feedback)
 
     # Символьный TF-IDF (3-5 граммы)
-    vec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), max_features=2000)
-    all_corpus = [query_doc] + docs
-    tfidf_matrix = vec.fit_transform(all_corpus)
+    try:
+        vec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 5), max_features=2000)
+        tfidf_matrix = vec.fit_transform(all_corpus)
+    except ValueError:
+        return _run_ml_pipeline_fallback(niche_title, keywords, candidates, feedback)
 
-    # Сжатие в скрытые представления TruncatedSVD
-    n_comp = min(24, max(2, len(docs) - 1))
-    svd = TruncatedSVD(n_components=n_comp, random_state=42)
-    h_matrix = svd.fit_transform(tfidf_matrix)
+    # Защита от малых выборок и определение n_components
+    if min(tfidf_matrix.shape) <= 2:
+        h_matrix = tfidf_matrix.toarray()
+    else:
+        max_svd_comp = min(tfidf_matrix.shape[0] - 1, tfidf_matrix.shape[1] - 1)
+        if max_svd_comp >= 1:
+            svd = TruncatedSVD(n_components=min(24, max_svd_comp), random_state=42)
+            h_matrix = svd.fit_transform(tfidf_matrix)
+        else:
+            h_matrix = tfidf_matrix.toarray()
 
     h0 = h_matrix[0]
     h_cand = h_matrix[1:]
@@ -791,22 +805,31 @@ def _run_ml_pipeline_sklearn(
             y_train.append(0)
             sample_weights.append(0.5)
 
+        if len(set(y_train)) < 2:
+            missing_label = 0 if 1 in set(y_train) else 1
+            feat_dim = x_all.shape[1]
+            synthetic_vec = np.zeros(feat_dim) if missing_label == 0 else np.ones(feat_dim)
+            x_train.append(synthetic_vec)
+            y_train.append(missing_label)
+            sample_weights.append(0.25)
+
         try:
             clf = LogisticRegression(C=2.0, max_iter=200, random_state=42)
             clf.fit(x_train, y_train, sample_weight=sample_weights)
 
             p_lr = clf.predict_proba(x_all)[:, 1]
             p_final = 0.4 * p_base_arr + 0.6 * p_lr
-
-            for cid, label in feedback_map.items():
-                if cid in cand_ids:
-                    idx = cand_ids.index(cid)
-                    if label == 1:
-                        p_final[idx] = max(0.92, p_final[idx])
-                    else:
-                        p_final[idx] = min(0.15, p_final[idx])
         except Exception as lr_err:
             logger.warning("Active Learning LogisticRegression error: %s", lr_err)
+
+        # Принудительное назначение скоров для гарантированного учета разметки пользователя
+        for cid, label in feedback_map.items():
+            if cid in cand_ids:
+                idx = cand_ids.index(cid)
+                if label == 1:
+                    p_final[idx] = max(0.92, float(p_final[idx]))
+                else:
+                    p_final[idx] = min(0.15, float(p_final[idx]))
 
     return _build_classified_response(candidates, p_final, feedback_map)
 
@@ -992,11 +1015,24 @@ async def _handle_classify_groups(req: ClassifyGroupsRequest, request: Request) 
 
     # 1. Если переданы кандидаты с клиента
     if req.candidate_groups:
-        candidates_dict = [cg.model_dump() for cg in req.candidate_groups]
+        candidates_dict = [
+            cg.model_dump() if hasattr(cg, "model_dump") else cg.dict()
+            for cg in req.candidate_groups
+        ]
+
+    # Автоматическое определение preset_key по ID целевой группы, если ключ не был явно передан
+    preset_key = req.preset_key
+    if not preset_key and req.target_group_id:
+        target_preset_map = {
+            25557243: "dodo",
+            18456201: "alexfitness",
+            31084223: "fitauto",
+        }
+        preset_key = target_preset_map.get(req.target_group_id)
 
     # 2. Если указан пресет (dodo, alexfitness, fitauto)
-    if not candidates_dict and req.preset_key:
-        cached = _get_vk_search_cache(f"preset:{req.preset_key.lower()}")
+    if not candidates_dict and preset_key:
+        cached = _get_vk_search_cache(f"preset:{preset_key.lower()}")
         if cached:
             candidates_dict = cached
 
@@ -1015,11 +1051,11 @@ async def _handle_classify_groups(req: ClassifyGroupsRequest, request: Request) 
         if merged:
             candidates_dict = merged
 
-    # 4. Если задан пользовательский токен VK и кэша нет — ищем через VK API
+    # 4. Если задан пользовательский токен VK и кэша нет — ищем через VK API с лимитом 8.5 сек
     if not candidates_dict and VK_USER_TOKEN and req.keywords:
-        try:
-            seen_ids = set()
-            fetched_groups = []
+        async def _fetch_vk_candidates() -> list[dict]:
+            seen_ids: set[int] = set()
+            fetched_groups: list[dict] = []
             for q in req.keywords[:3]:
                 s_json = await _safe_vk_api_get(
                     "https://api.vk.com/method/groups.search",
@@ -1058,10 +1094,16 @@ async def _handle_classify_groups(req: ClassifyGroupsRequest, request: Request) 
                             "city": g.get("city"),
                             "photo_100": g.get("photo_100", ""),
                         })
-            if fetched_groups:
-                candidates_dict = fetched_groups
+            return fetched_groups
+
+        try:
+            fetched = await asyncio.wait_for(_fetch_vk_candidates(), timeout=8.5)
+            if fetched:
+                candidates_dict = fetched
                 if req.keywords:
-                    _set_vk_search_cache(f"kw:{req.keywords[0].strip().lower()}", fetched_groups)
+                    _set_vk_search_cache(f"kw:{req.keywords[0].strip().lower()}", fetched)
+        except asyncio.TimeoutError:
+            logger.warning("Таймаут (8.5s) при поиске кандидатов через VK API")
         except Exception as vk_err:
             logger.warning("Ошибка при вызове VK API groups.search: %s", vk_err)
 

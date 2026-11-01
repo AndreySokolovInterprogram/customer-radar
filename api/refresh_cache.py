@@ -21,7 +21,12 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import asyncpg
+try:
+    import asyncpg
+    HAS_ASYNCPG = True
+except ImportError:
+    asyncpg = None  # type: ignore[assignment]
+    HAS_ASYNCPG = False
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("customer_radar_refresh")
@@ -533,8 +538,8 @@ async def refresh_once(pool: asyncpg.Pool, conn: sqlite3.Connection) -> None:
 
 async def verify_postgres_safe() -> Optional[asyncpg.Pool]:
     """Безопасная проверка подключения к PostgreSQL перед открытием локального хранилища."""
-    if not DATABASE_URL:
-        logger.info("[safe-guard] RADAR_DATABASE_URL не задана. Локальные данные сохранены без изменений.")
+    if not DATABASE_URL or not HAS_ASYNCPG or asyncpg is None:
+        logger.info("[safe-guard] RADAR_DATABASE_URL не задана или asyncpg не установлен. Локальные данные сохранены без изменений.")
         return None
 
     try:

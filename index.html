@@ -1147,6 +1147,13 @@
   }
 
   @media (max-width: 600px) {
+    .app-header .brand-sub,
+    .app-header .brand-tag {
+      display: none;
+    }
+    .app-header .btn-nav-item {
+      padding: 5px 6px;
+    }
     .summary-banner {
       grid-template-columns: 1fr;
     }
@@ -1595,6 +1602,7 @@
     rawCandidates: [],
     classifiedResults: [],
     uncertainCandidates: [],
+    filteredResults: [],
     activeLearningFeedback: {}, // group_id -> 0 или 1
     selectedIds: new Set(),
     favorites: new Set(),
@@ -1676,6 +1684,16 @@
   // ========================================================
   // 3. УТИЛИТЫ И НАВИГАЦИЯ
   // ========================================================
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function showToast(text) {
     if (!toastEl) return;
     toastEl.textContent = text;
@@ -1736,6 +1754,27 @@
 
   if (typeof vkBridge !== 'undefined') {
     vkBridge.send('VKWebAppInit').then(function () {
+      vkBridge.send('VKWebAppStorageGet', {
+        keys: ['neurokont_saved_reports_v2', 'neurokont_onboarding_v2']
+      }).then(function (storageData) {
+        if (storageData && storageData.keys) {
+          storageData.keys.forEach(function (entry) {
+            if (entry.key === 'neurokont_saved_reports_v2' && entry.value && entry.value !== '[]') {
+              if (!localStorage.getItem('neurokont_saved_reports_v2')) {
+                localStorage.setItem('neurokont_saved_reports_v2', entry.value);
+                updateSavedCounter();
+                if (state.currentView === 'saved') renderSavedReportsList();
+              }
+            }
+            if (entry.key === 'neurokont_onboarding_v2' && entry.value === 'true') {
+              if (!localStorage.getItem('neurokont_onboarding_v2')) {
+                localStorage.setItem('neurokont_onboarding_v2', 'true');
+              }
+            }
+          });
+        }
+      }).catch(function () {});
+
       return vkBridge.send('VKWebAppGetUserInfo');
     }).then(function (user) {
       if (user) {
@@ -1799,6 +1838,7 @@
       return;
     }
 
+    state.activeLearningFeedback = {};
     state.presetKey = presetKey || null;
     detectLoadingBlock.style.display = 'flex';
     detectConfirmedBlock.style.display = 'none';
@@ -1815,6 +1855,10 @@
         photo_100: res.photo_100,
         members_count: res.members_count
       };
+      var detectedSlug = res.screen_name || (state.targetGroup && state.targetGroup.screen_name);
+      if (!presetKey && detectedSlug && ['dodo', 'alexfitness', 'fitauto'].indexOf(detectedSlug) !== -1) {
+        state.presetKey = detectedSlug;
+      }
       state.nicheTitle = res.niche_title;
       state.detectedCity = res.detected_city;
       state.keywords = res.keywords.slice();
@@ -1851,7 +1895,7 @@
       var chip = document.createElement('span');
       chip.className = 'tag-chip';
       chip.innerHTML =
-        '<span>' + kw + '</span>' +
+        '<span>' + escapeHtml(kw) + '</span>' +
         '<span class="tag-chip-remove" data-index="' + index + '">×</span>';
 
       chip.querySelector('.tag-chip-remove').addEventListener('click', function () {
@@ -1916,17 +1960,9 @@
       state.classifiedResults = res.results || [];
       state.uncertainCandidates = res.uncertain_for_active_learning || [];
 
-      // Инициализируем выбранные для экспорта ID
-      state.selectedIds.clear();
-      state.classifiedResults.forEach(function (g) {
-        if (g.lstm_score >= 0.50) {
-          state.selectedIds.add(g.id);
-        }
-      });
-
       renderSummaryBanner();
       renderActiveLearningBlock();
-      applyFiltersAndRenderCompetitors();
+      applyFiltersAndRenderCompetitors(true);
 
       var pill = document.getElementById('res-target-niche-pill');
       if (pill) pill.textContent = 'Ниша: ' + (state.nicheTitle || 'Все');
@@ -1966,11 +2002,11 @@
 
       itemCard.innerHTML =
         '<div class="al-item-left">' +
-          '<img src="' + (group.photo_100 || '') + '" class="al-item-avatar" alt="">' +
+          '<img src="' + escapeHtml(group.photo_100 || '') + '" class="al-item-avatar" alt="">' +
           '<div class="al-item-text">' +
-            '<div class="al-item-name">' + group.name + '</div>' +
+            '<div class="al-item-name">' + escapeHtml(group.name) + '</div>' +
             '<div class="al-item-meta">' +
-              '<span>' + (group.activity || 'Сообщество') + '</span> · ' +
+              '<span>' + escapeHtml(group.activity || 'Сообщество') + '</span> · ' +
               '<span>' + formatNumber(group.members_count) + ' подп.</span> · ' +
               '<span class="al-item-score">' + percentScore + '% — спорно</span>' +
             '</div>' +
@@ -2013,7 +2049,7 @@
   // ========================================================
   // 8. КЛИЕНТСКАЯ ФИЛЬТРАЦИЯ И СОРТИРОВКА
   // ========================================================
-  function applyFiltersAndRenderCompetitors() {
+  function applyFiltersAndRenderCompetitors(isFilterChange) {
     var membersFilter = filterMembers.value;
     var scoreFilter = filterScore.value;
     var cityFilter = filterCity.value;
@@ -2053,6 +2089,20 @@
       filtered.sort(function (a, b) { return b.lstm_score - a.lstm_score; });
     }
 
+    state.filteredResults = filtered;
+
+    if (isFilterChange) {
+      state.selectedIds.clear();
+      filtered.forEach(function (g) {
+        state.selectedIds.add(g.id);
+      });
+      selectAllExport.checked = filtered.length > 0;
+    } else {
+      selectAllExport.checked = filtered.length > 0 && filtered.every(function (g) {
+        return state.selectedIds.has(g.id);
+      });
+    }
+
     renderCompetitorsCards(filtered);
     updateExportBar();
   }
@@ -2087,26 +2137,26 @@
 
       card.innerHTML =
         '<input type="checkbox" class="card-checkbox" data-id="' + group.id + '" ' + isChecked + '>' +
-        '<img src="' + (group.photo_100 || '') + '" class="card-avatar" alt="">' +
+        '<img src="' + escapeHtml(group.photo_100 || '') + '" class="card-avatar" alt="">' +
         '<div class="card-body">' +
           '<div class="card-header-row">' +
-            '<a href="' + vkUrl + '" target="_blank" rel="noopener noreferrer" class="card-name-title">' +
-              group.name +
+            '<a href="' + escapeHtml(vkUrl) + '" target="_blank" rel="noopener noreferrer" class="card-name-title">' +
+              escapeHtml(group.name) +
               (group.verified === 1 ? ' <span class="verified-icon" title="Верифицировано">✓</span>' : '') +
             '</a>' +
             '<span class="score-badge ' + badgeClass + '">' +
-              percentScore + '% · ' + group.segment_tag +
+              percentScore + '% · ' + escapeHtml(group.segment_tag) +
             '</span>' +
           '</div>' +
-          '<div class="card-desc">' + (group.description || group.activity || 'Описание сообщества отсутствует.') + '</div>' +
+          '<div class="card-desc">' + escapeHtml(group.description || group.activity || 'Описание сообщества отсутствует.') + '</div>' +
           '<div class="card-meta-row">' +
-            '<span class="card-meta-item">📍 ' + (group.city_title || 'Россия') + '</span>' +
+            '<span class="card-meta-item">📍 ' + escapeHtml(group.city_title || 'Россия') + '</span>' +
             '<span class="card-meta-item">👥 ' + formatNumber(group.members_count) + ' подписчиков</span>' +
-            '<span class="card-meta-item">🏷️ ' + (group.activity || 'Бизнес') + '</span>' +
+            '<span class="card-meta-item">🏷️ ' + escapeHtml(group.activity || 'Бизнес') + '</span>' +
             '<span class="card-meta-item">' + statusText + '</span>' +
           '</div>' +
           '<div class="card-actions-row">' +
-            '<a href="' + vkUrl + '" target="_blank" rel="noopener noreferrer" class="btn-card-action">ВКонтакте ↗</a>' +
+            '<a href="' + escapeHtml(vkUrl) + '" target="_blank" rel="noopener noreferrer" class="btn-card-action">ВКонтакте ↗</a>' +
             '<button type="button" class="btn-card-action btn-fav-toggle" data-id="' + group.id + '">' +
               (isFav ? '★ В избранном' : '☆ В избранное') +
             '</button>' +
@@ -2121,6 +2171,10 @@
         } else {
           state.selectedIds.delete(group.id);
         }
+        var currentFiltered = state.filteredResults || [];
+        selectAllExport.checked = currentFiltered.length > 0 && currentFiltered.every(function (g) {
+          return state.selectedIds.has(g.id);
+        });
         updateExportBar();
       });
 
@@ -2145,9 +2199,9 @@
   function updateExportBar() {
     var count = state.selectedIds.size;
     bottomSelectedCount.textContent = 'Выбрано для таргета: ' + count + ' сообществ';
-    selectAllLabel.textContent = 'Выбрать все (' + state.classifiedResults.length + ')';
+    selectAllLabel.textContent = 'Выбрать все (' + (state.filteredResults ? state.filteredResults.length : 0) + ')';
 
-    if (count > 0) {
+    if (state.classifiedResults.length > 0 && (state.currentView === 'results' || views.results.classList.contains('active'))) {
       bottomActionBar.classList.add('visible');
     } else {
       bottomActionBar.classList.remove('visible');
@@ -2303,11 +2357,11 @@
 
       card.innerHTML =
         '<div>' +
-          '<div style="font-size:14px; font-weight:700;">' + item.niche_title + '</div>' +
+          '<div style="font-size:14px; font-weight:700;">' + escapeHtml(item.niche_title) + '</div>' +
           '<div style="font-size:12px; color:var(--muted); margin-top:2px;">' +
-            'Группа: ' + (item.target_group ? item.target_group.name : '—') + ' · ' +
+            'Группа: ' + escapeHtml(item.target_group ? item.target_group.name : '—') + ' · ' +
             'Отобрано: ' + item.relevant_count + ' · ' +
-            'Сохранено: ' + item.saved_at +
+            'Сохранено: ' + escapeHtml(item.saved_at) +
           '</div>' +
         '</div>' +
         '<div style="display:flex; gap:6px;">' +
@@ -2413,6 +2467,13 @@
 
   // Кнопка запуска классификации
   btnStartClassify.addEventListener('click', function () {
+    var pendingKw = newKeywordInput.value.trim().toLowerCase();
+    if (pendingKw && state.keywords.indexOf(pendingKw) === -1) {
+      state.keywords.push(pendingKw);
+      newKeywordInput.value = '';
+      renderKeywordsChips();
+    }
+    state.nicheTitle = nicheTitleInput.value.trim() || state.nicheTitle;
     navigateTo('results');
     runClassification(false);
   });
@@ -2428,20 +2489,28 @@
   });
 
   // Фильтры
-  filterMembers.addEventListener('change', applyFiltersAndRenderCompetitors);
-  filterScore.addEventListener('change', applyFiltersAndRenderCompetitors);
-  filterCity.addEventListener('change', applyFiltersAndRenderCompetitors);
-  filterOpenOnly.addEventListener('change', applyFiltersAndRenderCompetitors);
-  sortSelector.addEventListener('change', applyFiltersAndRenderCompetitors);
+  function handleFilterChanged() {
+    applyFiltersAndRenderCompetitors(true);
+  }
+
+  filterMembers.addEventListener('change', handleFilterChanged);
+  filterScore.addEventListener('change', handleFilterChanged);
+  filterCity.addEventListener('change', handleFilterChanged);
+  filterOpenOnly.addEventListener('change', handleFilterChanged);
+  sortSelector.addEventListener('change', function () {
+    applyFiltersAndRenderCompetitors(false);
+  });
 
   // Выбрать все
   selectAllExport.addEventListener('change', function () {
+    var targets = state.filteredResults || [];
     if (selectAllExport.checked) {
-      state.classifiedResults.forEach(function (g) { state.selectedIds.add(g.id); });
+      targets.forEach(function (g) { state.selectedIds.add(g.id); });
     } else {
-      state.selectedIds.clear();
+      targets.forEach(function (g) { state.selectedIds.delete(g.id); });
     }
-    applyFiltersAndRenderCompetitors();
+    renderCompetitorsCards(targets);
+    updateExportBar();
   });
 
   // Бизнес-действия
@@ -2480,12 +2549,30 @@
     }
   });
 
-  document.getElementById('btn-saved-clear-all').addEventListener('click', function () {
-    if (confirm('Очистить все сохранённые подборки?')) {
+  var clearConfirmTimer = null;
+  var btnSavedClearAll = document.getElementById('btn-saved-clear-all');
+  btnSavedClearAll.addEventListener('click', function () {
+    if (btnSavedClearAll.getAttribute('data-confirming') === 'true') {
+      clearTimeout(clearConfirmTimer);
+      btnSavedClearAll.removeAttribute('data-confirming');
+      btnSavedClearAll.textContent = 'Очистить всё';
       localStorage.removeItem('neurokont_saved_reports_v2');
+      if (typeof vkBridge !== 'undefined') {
+        vkBridge.send('VKWebAppStorageSet', {
+          key: 'neurokont_saved_reports_v2',
+          value: '[]'
+        }).catch(function () {});
+      }
       updateSavedCounter();
       renderSavedReportsList();
       showToast('Все подборки удалены');
+    } else {
+      btnSavedClearAll.setAttribute('data-confirming', 'true');
+      btnSavedClearAll.textContent = 'Подтвердить очистку?';
+      clearConfirmTimer = setTimeout(function () {
+        btnSavedClearAll.removeAttribute('data-confirming');
+        btnSavedClearAll.textContent = 'Очистить всё';
+      }, 3000);
     }
   });
 
@@ -2495,7 +2582,7 @@
   updateSavedCounter();
 
   if (!localStorage.getItem('neurokont_onboarding_v2')) {
-    navigateTo('onboarding');
+    navigateTo('onboarding', false);
   }
 
 })();
