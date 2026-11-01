@@ -130,11 +130,20 @@
     --danger-soft: rgba(230, 70, 70, 0.12);
   }
 
-  * {
+  /* ШАГ 1: Глобальный Anti-Overflow Reset */
+  *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    max-width: 100%;
+    overflow-x: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   body {
@@ -145,10 +154,48 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Safe Area Header */
+  /* Защита от переполнения текстом для всех элементов */
+  p, h1, h2, h3, h4, h5, h6, span, a, label, div {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Защита дочерних Flex/Grid контейнеров от распирания */
+  .card-box,
+  .hero-card,
+  .competitor-card,
+  .summary-stat-card,
+  .active-learning-card,
+  .al-item-card,
+  .saved-report-card,
+  .target-profile-box,
+  .filters-panel,
+  .onboarding-card,
+  .legal-text-box,
+  .card-body,
+  .target-info,
+  .al-item-left,
+  .al-item-text,
+  .saved-report-info {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  img, svg, video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ШАГ 2: Унификация верхней шапки (.app-header) */
   .app-header {
     position: sticky;
     top: 0;
@@ -156,11 +203,22 @@
     background: var(--surface);
     border-bottom: 1px solid var(--line);
     padding: 10px 16px;
-    padding-right: 96px; /* Отступ под системные кнопки ВК */
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-right: calc(96px + env(safe-area-inset-right, 0px)); /* Отступ под системные кнопки ВК */
+    padding-left: max(16px, env(safe-area-inset-left));
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .header-top-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
   }
 
   .header-brand {
@@ -170,6 +228,7 @@
     text-decoration: none;
     color: inherit;
     cursor: pointer;
+    min-width: 0;
   }
 
   .brand-logo-icon {
@@ -190,6 +249,7 @@
   .brand-text-block {
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
 
   .brand-name {
@@ -201,6 +261,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .brand-tag {
@@ -211,17 +273,22 @@
     padding: 2px 6px;
     border-radius: var(--radius-full);
     font-weight: 600;
+    flex-shrink: 0;
   }
 
   .brand-sub {
     font-size: 11px;
     color: var(--muted);
+    overflow-wrap: anywhere;
+    line-height: 1.3;
   }
 
   .header-nav {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+    flex-shrink: 0;
   }
 
   .btn-nav-item {
@@ -237,11 +304,20 @@
     align-items: center;
     gap: 5px;
     transition: all 0.15s ease;
+    white-space: nowrap;
+    box-sizing: border-box;
+    user-select: none;
   }
 
   .btn-nav-item:hover {
     background: var(--surface-2);
     border-color: var(--line-strong);
+  }
+
+  .btn-nav-item.active {
+    background: var(--vk-blue-soft);
+    border-color: var(--vk-blue);
+    color: var(--vk-blue);
   }
 
   .nav-counter {
@@ -251,6 +327,7 @@
     font-weight: 700;
     padding: 1px 6px;
     border-radius: var(--radius-full);
+    flex-shrink: 0;
   }
 
   .nav-counter.has-items {
@@ -262,6 +339,7 @@
     display: none;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .user-badge.visible {
@@ -274,22 +352,27 @@
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid var(--line);
+    flex-shrink: 0;
   }
 
-  /* Main Container */
+  /* Основной контейнер приложения */
   .app-container {
     flex: 1;
     max-width: 960px;
     width: 100%;
     margin: 0 auto;
     padding: 16px;
-    padding-bottom: 90px;
+    padding-bottom: 160px; /* Достаточный отступ под фиксированную нижнюю панель */
+    box-sizing: border-box;
+    min-width: 0;
   }
 
-  /* Views */
+  /* Экраны (View Panels) */
   .view-panel {
     display: none;
     animation: fadeIn 0.2s ease-out;
+    width: 100%;
+    min-width: 0;
   }
 
   .view-panel.active {
@@ -301,7 +384,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Hero Section */
+  /* Герой-секция */
   .hero-card {
     background: linear-gradient(135deg, rgba(38, 136, 235, 0.08), rgba(24, 160, 139, 0.08));
     border: 1px solid var(--line);
@@ -310,24 +393,31 @@
     margin-bottom: 18px;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .hero-title {
     font-family: 'Unbounded', sans-serif;
-    font-size: 18px;
+    font-size: clamp(16px, 4vw, 20px);
     font-weight: 700;
     line-height: 1.3;
     margin-bottom: 6px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .hero-desc {
     font-size: 13px;
     color: var(--muted);
     max-width: 680px;
-    line-height: 1.4;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  /* Card Container */
+  /* Карточка-контейнер */
   .card-box {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -335,6 +425,10 @@
     padding: 18px;
     margin-bottom: 16px;
     box-shadow: var(--shadow-sm);
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .card-title {
@@ -345,6 +439,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .input-label {
@@ -353,13 +449,18 @@
     font-weight: 600;
     color: var(--ink-2);
     margin-bottom: 6px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  /* Search Input Row */
+  /* ШАГ 3: Поле ввода ссылки, пресеты, карточка целевой группы и ChipsInput */
   .search-input-group {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 12px;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
   }
 
   .text-input {
@@ -373,6 +474,8 @@
     border-radius: var(--radius-md);
     outline: none;
     transition: border-color 0.15s ease, background 0.15s ease;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .text-input:focus {
@@ -396,6 +499,8 @@
     gap: 8px;
     transition: background 0.15s ease, transform 0.05s ease;
     white-space: nowrap;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .btn-primary:hover {
@@ -411,19 +516,45 @@
     cursor: not-allowed;
   }
 
-  /* Preset Chips */
+  .btn-secondary {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-3);
+  }
+
+  /* Демо-чипсы быстрого старта */
   .preset-chips-wrap {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     margin-top: 6px;
+    width: 100%;
+    min-width: 0;
   }
 
   .chips-label {
     font-size: 12px;
     color: var(--muted);
     font-weight: 500;
+    white-space: nowrap;
   }
 
   .preset-chip {
@@ -439,6 +570,13 @@
     align-items: center;
     gap: 6px;
     transition: all 0.15s ease;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    text-align: left;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
   }
 
   .preset-chip:hover {
@@ -447,7 +585,7 @@
     color: var(--vk-blue);
   }
 
-  /* Target Group Profile Box */
+  /* Карточка распознанного сообщества */
   .target-profile-box {
     display: flex;
     align-items: center;
@@ -457,11 +595,14 @@
     border-radius: var(--radius-md);
     padding: 12px;
     margin-bottom: 16px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .target-avatar {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -470,20 +611,23 @@
   .target-info {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
   }
 
   .target-name {
     font-size: 14px;
     font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .target-meta {
     font-size: 12px;
     color: var(--muted);
     margin-top: 2px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .target-preview {
@@ -495,9 +639,12 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  /* Chips Input Component */
+  /* ChipsInput компонент */
   .chips-input-container {
     background: var(--surface-2);
     border: 1px solid var(--line);
@@ -508,6 +655,9 @@
     gap: 6px;
     align-items: center;
     margin-bottom: 14px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .tag-chip {
@@ -521,6 +671,17 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .tag-chip-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .tag-chip-remove {
@@ -530,6 +691,8 @@
     font-size: 14px;
     line-height: 1;
     transition: color 0.1s ease;
+    flex-shrink: 0;
+    padding: 0 2px;
   }
 
   .tag-chip-remove:hover {
@@ -546,14 +709,40 @@
     padding: 4px 6px;
     min-width: 140px;
     flex: 1;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
-  /* Summary Banner */
+  /* ШАГ 4: Экран 2 и 3 — Сводная плашка, фильтры, Active Learning, карточки */
+  .results-nav-bar {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .results-niche-pill {
+    font-size: 12px;
+    color: var(--muted);
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Сводная плашка статистики */
   .summary-banner {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
     gap: 10px;
     margin-bottom: 16px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .summary-stat-card {
@@ -563,6 +752,11 @@
     padding: 12px;
     text-align: center;
     box-shadow: var(--shadow-sm);
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    box-sizing: border-box;
   }
 
   .summary-stat-val {
@@ -570,6 +764,7 @@
     font-size: 18px;
     font-weight: 700;
     color: var(--ink);
+    overflow-wrap: anywhere;
   }
 
   .summary-stat-val.green {
@@ -584,15 +779,21 @@
     font-size: 11px;
     color: var(--muted);
     margin-top: 2px;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
   }
 
-  /* Active Learning Block */
+  /* Блок Active Learning */
   .active-learning-card {
     background: linear-gradient(135deg, rgba(226, 139, 20, 0.08), rgba(38, 136, 235, 0.08));
     border: 1px solid var(--accent-amber);
     border-radius: var(--radius-lg);
     padding: 16px;
     margin-bottom: 16px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .al-header {
@@ -600,6 +801,8 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 6px;
+    width: 100%;
+    min-width: 0;
   }
 
   .al-title {
@@ -610,13 +813,17 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .al-subtitle {
     font-size: 12px;
     color: var(--muted);
     margin-bottom: 12px;
-    line-height: 1.4;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .al-items-grid {
@@ -624,6 +831,8 @@
     flex-direction: column;
     gap: 8px;
     margin-bottom: 12px;
+    width: 100%;
+    min-width: 0;
   }
 
   .al-item-card {
@@ -635,6 +844,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .al-item-left {
@@ -643,11 +855,12 @@
     gap: 10px;
     min-width: 0;
     flex: 1;
+    max-width: 100%;
   }
 
   .al-item-avatar {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -655,22 +868,27 @@
 
   .al-item-text {
     min-width: 0;
+    flex: 1;
+    max-width: 100%;
   }
 
   .al-item-name {
     font-size: 13px;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.3;
   }
 
   .al-item-meta {
     font-size: 11px;
     color: var(--muted);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+    overflow-wrap: anywhere;
+    margin-top: 2px;
   }
 
   .al-item-score {
@@ -680,6 +898,8 @@
     border-radius: var(--radius-full);
     font-weight: 700;
     font-size: 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .al-item-actions {
@@ -698,6 +918,18 @@
     border-radius: var(--radius-full);
     cursor: pointer;
     transition: all 0.15s ease;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .btn-al-pos:hover {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  .btn-al-neg:hover {
+    border-color: var(--danger);
+    color: var(--danger);
   }
 
   .btn-al-toggle.active-pos {
@@ -717,26 +949,12 @@
     gap: 8px;
     align-items: center;
     justify-content: flex-end;
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
   }
 
-  .btn-secondary {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
-    color: var(--ink);
-    font-size: 12px;
-    font-weight: 600;
-    font-family: inherit;
-    padding: 8px 14px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .btn-secondary:hover {
-    background: var(--surface-3);
-  }
-
-  /* Filters Panel */
+  /* Панель фильтров */
   .filters-panel {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -746,21 +964,25 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .filters-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
   }
 
   .filter-group {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    flex: 1;
-    min-width: 140px;
+    min-width: 0;
+    width: 100%;
   }
 
   .filter-label {
@@ -769,6 +991,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    overflow-wrap: anywhere;
   }
 
   .select-input {
@@ -777,10 +1000,26 @@
     color: var(--ink);
     font-size: 12px;
     font-family: inherit;
-    padding: 6px 10px;
+    padding: 7px 10px;
     border-radius: var(--radius-md);
     outline: none;
     cursor: pointer;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+  }
+
+  .filters-checkboxes-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+    width: 100%;
+    min-width: 0;
   }
 
   .checkbox-label {
@@ -791,13 +1030,19 @@
     gap: 6px;
     cursor: pointer;
     user-select: none;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
-  /* Competitors List & Cards */
+  /* Список и карточки конкурентов */
   .competitors-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 100%;
+    min-width: 0;
   }
 
   .competitor-card {
@@ -810,6 +1055,10 @@
     gap: 12px;
     box-shadow: var(--shadow-sm);
     transition: transform 0.1s ease, border-color 0.15s ease;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .competitor-card:hover {
@@ -817,32 +1066,38 @@
   }
 
   .card-checkbox {
-    margin-top: 4px;
-    width: 16px;
-    height: 16px;
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
     accent-color: var(--vk-blue);
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .card-avatar {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    background: var(--surface-2);
   }
 
   .card-body {
     flex: 1;
     min-width: 0;
+    max-width: 100%;
   }
 
   .card-header-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
+    flex-wrap: wrap;
     margin-bottom: 4px;
+    width: 100%;
+    min-width: 0;
   }
 
   .card-name-title {
@@ -853,6 +1108,11 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+    max-width: 100%;
+    line-height: 1.3;
   }
 
   .card-name-title:hover {
@@ -862,6 +1122,7 @@
   .verified-icon {
     color: var(--vk-blue);
     font-size: 13px;
+    flex-shrink: 0;
   }
 
   .score-badge {
@@ -869,10 +1130,14 @@
     font-weight: 700;
     padding: 3px 8px;
     border-radius: var(--radius-full);
-    white-space: nowrap;
+    white-space: normal;
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .score-badge.direct {
@@ -899,43 +1164,59 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 100%;
   }
 
   .card-meta-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 6px 10px;
     font-size: 11px;
     color: var(--muted);
     align-items: center;
+    width: 100%;
+    min-width: 0;
   }
 
   .card-meta-item {
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .card-actions-row {
     display: flex;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-top: 8px;
+    width: 100%;
+    min-width: 0;
   }
 
   .btn-card-action {
     background: transparent;
     border: 1px solid var(--line);
     color: var(--ink-2);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     transition: all 0.1s ease;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    user-select: none;
   }
 
   .btn-card-action:hover {
@@ -943,18 +1224,22 @@
     color: var(--ink);
   }
 
-  /* Fixed Bottom Action Bar */
+  /* ШАГ 5: Фиксированная нижняя панель действий (.bottom-action-bar) */
   .bottom-action-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
+    width: 100%;
+    max-width: 100%;
     z-index: 90;
     background: var(--surface);
     border-top: 1px solid var(--line);
     padding: 10px 16px;
-    display: none;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    display: none;
+    box-sizing: border-box;
   }
 
   .bottom-action-bar.visible {
@@ -963,27 +1248,127 @@
   }
 
   .bottom-action-content {
-    max-width: 960px;
+    max-width: 920px;
     width: 100%;
+    margin: 0 auto;
     display: flex;
-    gap: 8px;
+    gap: 12px;
     align-items: center;
     justify-content: space-between;
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   .bottom-actions-group {
     display: flex;
     gap: 8px;
+    align-items: center;
     flex-wrap: wrap;
+    min-width: 0;
   }
 
-  /* Toast Notification */
+  /* ШАГ 6: Экран «Мои подборки» */
+  .saved-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .saved-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .saved-report-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .saved-report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .saved-report-info {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .saved-report-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+
+  .saved-report-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .saved-report-stats {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-top: 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  .saved-report-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .saved-report-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Всплывающее уведомление (Toast / Snackbar) */
   .toast {
     position: fixed;
-    bottom: 80px;
+    bottom: 100px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: rgba(15, 19, 36, 0.92);
+    background: rgba(15, 19, 36, 0.94);
     color: #FFFFFF;
     font-size: 13px;
     font-weight: 500;
@@ -993,11 +1378,14 @@
     opacity: 0;
     transition: all 0.2s ease;
     z-index: 200;
-    box-shadow: var(--shadow-md);
-    white-space: nowrap;
-    max-width: 90vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    box-shadow: var(--shadow-lg);
+    max-width: calc(100vw - 32px);
+    width: max-content;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    text-align: center;
+    line-height: 1.35;
+    box-sizing: border-box;
   }
 
   .toast.show {
@@ -1005,7 +1393,7 @@
     transform: translateX(-50%) translateY(0);
   }
 
-  /* Loading State */
+  /* Состояние загрузки (Loading State) */
   .loading-box {
     display: flex;
     flex-direction: column;
@@ -1013,6 +1401,9 @@
     justify-content: center;
     padding: 40px 20px;
     text-align: center;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .spinner {
@@ -1023,6 +1414,7 @@
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin-bottom: 14px;
+    flex-shrink: 0;
   }
 
   @keyframes spin {
@@ -1033,15 +1425,22 @@
     font-size: 14px;
     font-weight: 600;
     color: var(--ink);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 520px;
+    line-height: 1.4;
   }
 
   .loading-sub {
     font-size: 12px;
     color: var(--muted);
     margin-top: 4px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 520px;
   }
 
-  /* Onboarding */
+  /* Онбординг / Инструкция */
   .onboarding-card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -1049,7 +1448,9 @@
     padding: 24px;
     text-align: center;
     max-width: 480px;
+    width: 100%;
     margin: 20px auto;
+    box-sizing: border-box;
   }
 
   .onboarding-num {
@@ -1065,6 +1466,7 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
+    flex-shrink: 0;
   }
 
   .onboarding-title {
@@ -1072,6 +1474,9 @@
     font-size: 16px;
     font-weight: 700;
     margin-bottom: 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.3;
   }
 
   .onboarding-desc {
@@ -1079,6 +1484,8 @@
     color: var(--muted);
     line-height: 1.5;
     margin-bottom: 20px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .onboarding-dots {
@@ -1106,9 +1513,11 @@
     display: flex;
     justify-content: space-between;
     gap: 10px;
+    width: 100%;
+    min-width: 0;
   }
 
-  /* Legal & Support View */
+  /* Справка и правовые документы */
   .legal-text-box {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -1117,6 +1526,10 @@
     font-size: 13px;
     line-height: 1.6;
     color: var(--ink-2);
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
   }
 
   .legal-text-box h2 {
@@ -1124,10 +1537,14 @@
     font-size: 16px;
     color: var(--ink);
     margin: 16px 0 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .legal-text-box p {
     margin-bottom: 10px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .app-footer {
@@ -1137,57 +1554,276 @@
     font-size: 11px;
     color: var(--muted);
     margin-top: auto;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .footer-links {
     display: flex;
     justify-content: center;
-    gap: 16px;
+    gap: 10px 16px;
     margin-bottom: 8px;
     flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
   }
 
   .footer-link {
     color: var(--muted);
     text-decoration: none;
     cursor: pointer;
+    overflow-wrap: anywhere;
   }
 
   .footer-link:hover {
     color: var(--vk-blue);
   }
 
-  @media (max-width: 600px) {
-    .app-header .brand-sub,
-    .app-header .brand-tag {
+  /* ========================================================
+     АДАПТИВНЫЕ МЕДИА-ЗАПРОСЫ (RESPONSIVE BREAKPOINTS)
+     ======================================================== */
+
+  @media (max-width: 768px) {
+    .app-container {
+      padding: 14px 12px;
+      padding-bottom: 180px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    /* Верхняя шапка: 2 строки с защитой от наложения кнопок ВК */
+    .app-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 8px 12px;
+      padding-top: max(8px, env(safe-area-inset-top));
+      padding-right: 12px;
+      padding-left: max(12px, env(safe-area-inset-left));
+    }
+
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding-right: 96px; /* Защитная зона под системные кнопки ВК в правом верхнем углу */
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    .brand-sub {
       display: none;
     }
-    .app-header .btn-nav-item {
-      padding: 5px 6px;
+
+    .header-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      min-width: 0;
     }
-    .summary-banner {
-      grid-template-columns: 1fr;
+
+    .btn-nav-item {
+      flex: 1 1 auto;
+      justify-content: center;
+      text-align: center;
+      font-size: 11px;
+      padding: 5px 8px;
     }
+
+    .hero-card {
+      padding: 14px;
+    }
+
+    .card-box {
+      padding: 14px;
+    }
+
+    /* Экран 1: Ввод ссылки и кнопка во всю ширину */
     .search-input-group {
       flex-direction: column;
+      gap: 8px;
     }
-    .al-item-card {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .al-item-actions {
+
+    .search-input-group .btn-primary {
       width: 100%;
-      justify-content: flex-end;
+      justify-content: center;
     }
+
+    /* ШАГ 5: Фиксированная нижняя панель действий — сетка 2x2 */
+    .app-container {
+      padding-bottom: 210px;
+    }
+
     .bottom-action-content {
       flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
     }
+
+    #bottom-selected-count {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-2);
+    }
+
     .bottom-actions-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
       width: 100%;
     }
+
     .bottom-actions-group .btn-primary,
     .bottom-actions-group .btn-secondary {
-      flex: 1;
+      width: 100%;
+      justify-content: center;
+      font-size: 13px;
+      padding: 9px 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+    }
+
+    .bottom-actions-group .btn-primary span,
+    .bottom-actions-group .btn-secondary span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .toast {
+      bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+      font-size: 12px;
+      padding: 8px 14px;
+    }
+  }
+
+  @media (max-width: 540px) {
+    /* Блок Active Learning: кнопки в 2 колонки на всю ширину */
+    .al-item-card {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .al-item-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .btn-al-toggle {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .al-footer-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .al-footer-actions .btn-secondary,
+    .al-footer-actions .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .app-container {
+      padding: 10px 8px;
+      padding-bottom: 215px;
+    }
+
+    /* Панель фильтров в 1 колонку */
+    .filters-row {
+      grid-template-columns: 1fr;
+    }
+
+    .filters-checkboxes-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* Карточки конкурентов */
+    .competitor-card {
+      padding: 12px 10px;
+      gap: 10px;
+    }
+
+    .card-avatar {
+      width: 44px;
+      height: 44px;
+    }
+
+    .card-name-title {
+      font-size: 13px;
+    }
+
+    .card-actions-row {
+      gap: 6px;
+    }
+
+    .btn-card-action {
+      font-size: 11px;
+      padding: 5px 8px;
+    }
+
+    .saved-report-actions .btn-primary,
+    .saved-report-actions .btn-secondary {
+      flex: 1 1 calc(50% - 4px);
+      min-width: 120px;
+      justify-content: center;
+      text-align: center;
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .btn-nav-item {
+      font-size: 10px;
+      padding: 4px 6px;
+      gap: 3px;
+    }
+
+    .brand-tag {
+      display: none;
+    }
+
+    .competitor-card {
+      padding: 10px 8px;
+      gap: 8px;
+    }
+
+    .card-avatar {
+      width: 38px;
+      height: 38px;
+    }
+
+    .card-actions-row .btn-card-action {
+      flex: 1 1 100%;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .bottom-actions-group .btn-primary,
+    .bottom-actions-group .btn-secondary {
+      font-size: 12px;
+      padding: 8px 4px;
+    }
+
+    .tag-input-inline {
+      min-width: 110px;
     }
   }
 </style>
@@ -1196,30 +1832,35 @@
 
 <!-- Header -->
 <header class="app-header">
-  <div class="header-brand" id="brand-logo-btn">
-    <div class="brand-logo-icon">НК</div>
-    <div class="brand-text-block">
-      <span class="brand-name">НейроКонт <span class="brand-tag">ИИ-радар</span></span>
-      <span class="brand-sub">Поиск конкурентов и таргетинг</span>
+  <div class="header-top-row">
+    <div class="header-brand" id="brand-logo-btn" title="На главную (Поиск)">
+      <div class="brand-logo-icon">НК</div>
+      <div class="brand-text-block">
+        <span class="brand-name">НейроКонт <span class="brand-tag">ИИ-радар</span></span>
+        <span class="brand-sub">Поиск конкурентов и таргетинг</span>
+      </div>
     </div>
-  </div>
-
-  <div class="header-nav">
-    <button type="button" class="btn-nav-item" id="btn-open-how">
-      <span>Инструкция</span>
-    </button>
-    <button type="button" class="btn-nav-item" id="btn-open-saved">
-      <span>Подборки</span>
-      <span class="nav-counter" id="saved-counter">0</span>
-    </button>
-    <button type="button" class="btn-nav-item" id="btn-open-support">
-      <span>Поддержка</span>
-    </button>
 
     <div class="user-badge" id="user-badge">
       <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'><circle cx='14' cy='14' r='14' fill='%23EEF1F5'/></svg>" class="user-avatar" id="user-avatar" alt="Профиль">
     </div>
   </div>
+
+  <nav class="header-nav" aria-label="Навигация приложения">
+    <button type="button" class="btn-nav-item active" id="btn-open-search">
+      <span>🔍 Поиск</span>
+    </button>
+    <button type="button" class="btn-nav-item" id="btn-open-saved">
+      <span>📑 Подборки</span>
+      <span class="nav-counter" id="saved-counter">0</span>
+    </button>
+    <button type="button" class="btn-nav-item" id="btn-open-how">
+      <span>💡 Инструкция</span>
+    </button>
+    <button type="button" class="btn-nav-item" id="btn-open-support">
+      <span>💬 Поддержка</span>
+    </button>
+  </nav>
 </header>
 
 <!-- Main Container -->
@@ -1290,7 +1931,7 @@
 
       <!-- Поле редактирования ниши -->
       <label class="input-label" for="niche-title-input">Предметная область (ниша бизнеса):</label>
-      <input type="text" id="niche-title-input" class="text-input" style="margin-bottom:14px;">
+      <input type="text" id="niche-title-input" class="text-input" style="margin-bottom:14px; width:100%; box-sizing:border-box;">
 
       <!-- ChipsInput для ключевых запросов -->
       <label class="input-label">Ключевые запросы для поиска конкурентов (нажмите Enter для добавления):</label>
@@ -1299,7 +1940,7 @@
         <input type="text" id="new-keyword-input" class="tag-input-inline" placeholder="+ Добавить свой запрос (Enter)">
       </div>
 
-      <button type="button" class="btn-primary" id="btn-start-classify" style="width:100%; padding:14px;">
+      <button type="button" class="btn-primary" id="btn-start-classify" style="width:100%; padding:14px; white-space:normal; text-align:center;">
         <span>⚡ Найти и классифицировать конкурентов (ИИ)</span>
       </button>
     </div>
@@ -1311,11 +1952,11 @@
        ======================================================== -->
   <section class="view-panel" id="view-results">
     <!-- Навигация назад -->
-    <div style="margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
+    <div class="results-nav-bar">
       <button type="button" class="btn-secondary" id="btn-results-back">
         <span>← Назад к параметрам поиска</span>
       </button>
-      <span style="font-size:12px; color:var(--muted);" id="res-target-niche-pill">—</span>
+      <span class="results-niche-pill" id="res-target-niche-pill">—</span>
     </div>
 
     <!-- Индикатор загрузки классификации -->
@@ -1409,7 +2050,7 @@
           </div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+        <div class="filters-checkboxes-row">
           <label class="checkbox-label">
             <input type="checkbox" id="filter-open-only" checked>
             <span>Только открытые группы (доступные для парсинга)</span>
@@ -1435,8 +2076,8 @@
        ВКЛАДКА: Мои сохранённые подборки
        ======================================================== -->
   <section class="view-panel" id="view-saved">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h2 style="font-family:'Unbounded', sans-serif; font-size:16px;">Мои сохранённые подборки</h2>
+    <div class="saved-header-row">
+      <h2 class="saved-title">Мои сохранённые подборки</h2>
       <button type="button" class="btn-secondary" id="btn-saved-clear-all" style="color:var(--danger);">
         <span>Очистить всё</span>
       </button>
@@ -1730,6 +2371,24 @@
     viewEl.classList.add('active');
     state.currentView = targetView;
 
+    // Синхронизация активной вкладки в верхней шапке
+    var navButtons = {
+      home: document.getElementById('btn-open-search'),
+      saved: document.getElementById('btn-open-saved'),
+      onboarding: document.getElementById('btn-open-how'),
+      support: document.getElementById('btn-open-support')
+    };
+    Object.keys(navButtons).forEach(function (key) {
+      var btn = navButtons[key];
+      if (btn) {
+        if (key === targetView || (key === 'home' && targetView === 'results')) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    });
+
     // Управление видимостью нижней панели действий
     if (targetView === 'results' && state.classifiedResults.length > 0) {
       bottomActionBar.classList.add('visible');
@@ -1964,8 +2623,8 @@
       var chip = document.createElement('span');
       chip.className = 'tag-chip';
       chip.innerHTML =
-        '<span>' + escapeHtml(kw) + '</span>' +
-        '<span class="tag-chip-remove" data-index="' + index + '">×</span>';
+        '<span class="tag-chip-text">' + escapeHtml(kw) + '</span>' +
+        '<span class="tag-chip-remove" data-index="' + index + '" title="Удалить запрос">×</span>';
 
       chip.querySelector('.tag-chip-remove').addEventListener('click', function () {
         state.keywords.splice(index, 1);
@@ -2815,7 +3474,7 @@
 
     if (list.length === 0) {
       savedReportsList.innerHTML =
-        '<div style="text-align:center; padding:40px; color:var(--muted);">' +
+        '<div style="text-align:center; padding:40px 16px; color:var(--muted);">' +
           '<div style="font-size:32px; margin-bottom:8px;">📑</div>' +
           '<div style="font-size:14px; font-weight:600;">У вас пока нет сохранённых отчётов</div>' +
           '<div style="font-size:12px; margin-top:4px;">Находите конкурентов и сохраняйте выборки в один клик.</div>' +
@@ -2825,8 +3484,7 @@
 
     list.forEach(function (item, idx) {
       var card = document.createElement('div');
-      card.className = 'card-box';
-      card.style.marginBottom = '12px';
+      card.className = 'saved-report-card';
 
       var targetName = item.target_group ? (item.target_group.name || 'Сообщество ВКонтакте') : 'Анализ ниши';
       var relevantCount = (item.summary_stats && item.summary_stats.relevant_count !== undefined)
@@ -2839,30 +3497,30 @@
       var keywordsHtml = '';
       if (keywords.length > 0) {
         var chipsHtml = keywords.slice(0, 8).map(function (kw) {
-          return '<span class="tag-chip" style="font-size:11px; padding:2px 7px; background:var(--surface-2);">' + escapeHtml(kw) + '</span>';
+          return '<span class="tag-chip" style="font-size:11px; padding:2px 7px; background:var(--surface-2); max-width:100%; overflow-wrap:anywhere; word-break:break-word;">' + escapeHtml(kw) + '</span>';
         }).join('');
         var extraCount = keywords.length > 8 ? '<span style="font-size:11px; color:var(--muted); align-self:center;">+' + (keywords.length - 8) + ' ещё</span>' : '';
-        keywordsHtml = '<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; margin-bottom:10px;">' + chipsHtml + extraCount + '</div>';
+        keywordsHtml = '<div class="saved-report-keywords">' + chipsHtml + extraCount + '</div>';
       }
 
       var cityStr = item.detected_city ? ' · г. ' + escapeHtml(item.detected_city) : '';
 
       card.innerHTML =
-        '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">' +
-          '<div>' +
-            '<div style="font-size:15px; font-weight:700; color:var(--ink);">' + escapeHtml(item.niche_title || 'Подборка конкурентов') + '</div>' +
-            '<div style="font-size:12px; color:var(--muted); margin-top:2px;">' +
+        '<div class="saved-report-header">' +
+          '<div class="saved-report-info">' +
+            '<div class="saved-report-title">' + escapeHtml(item.niche_title || 'Подборка конкурентов') + '</div>' +
+            '<div class="saved-report-sub">' +
               'Группа: ' + escapeHtml(targetName) + cityStr + ' · ' +
               escapeHtml(item.saved_at || '') +
             '</div>' +
           '</div>' +
-          '<button type="button" class="btn-secondary btn-del-report" style="color:var(--danger); padding:4px 8px; font-size:13px;" title="Удалить подборку">✕</button>' +
+          '<button type="button" class="btn-secondary btn-del-report" style="color:var(--danger); padding:4px 8px; font-size:13px; flex-shrink:0;" title="Удалить подборку">✕</button>' +
         '</div>' +
-        '<div style="font-size:12px; font-weight:600; color:var(--ink-2); margin-top:8px;">' +
+        '<div class="saved-report-stats">' +
           'Отобрано: ' + formatNumber(relevantCount) + ' • Выбрано в экспорт: ' + formatNumber(selectedCount) + ' • Ключевых фраз: ' + keywordsCount +
         '</div>' +
         keywordsHtml +
-        '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">' +
+        '<div class="saved-report-actions">' +
           '<button type="button" class="btn-primary btn-open-report" style="padding:7px 14px; font-size:13px;">' +
             '<span>📂 Открыть отчёт</span>' +
           '</button>' +
@@ -2953,6 +3611,13 @@
   document.getElementById('brand-logo-btn').addEventListener('click', function () {
     navigateTo('home');
   });
+
+  var btnOpenSearch = document.getElementById('btn-open-search');
+  if (btnOpenSearch) {
+    btnOpenSearch.addEventListener('click', function () {
+      navigateTo('home');
+    });
+  }
 
   document.getElementById('btn-open-how').addEventListener('click', function () {
     navigateTo('onboarding');
