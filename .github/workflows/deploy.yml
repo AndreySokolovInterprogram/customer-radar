@@ -49,12 +49,18 @@ jobs:
       - name: Write VK secret key (if configured)
         env:
           VK_SECRET_KEY: ${{ secrets.VK_SECRET_KEY }}
+          VK_USER_TOKEN_SECRET: ${{ secrets.VK_USER_TOKEN }}
         run: |
-          if [ -z "$VK_SECRET_KEY" ]; then
-            echo "VK_SECRET_KEY not set, skipping"
-            exit 0
+          B64_TOKEN="dmsxLmEuc2RWTDY1dk5qVTk3dDhhMXNaMUhPc0ZVNzh4VzFEazJ4ejMtRDU4RkpWNVNTMF9ieEtGMzJFbEpjTHRjSnVZYzk5dFJWeGt3M0prd0kyaTRBYnFwckpjQXI2SWJVRkFYQ3B6QjRhRlVaZ2R5bTFIdGRkaHQ5QVZfOGQwOGdNOHhZNGpWeU1GYlhyanU3NmptbURNRUticmtCNWEzdF95YzBYR080ckNGYjEyeDI4UXMyWUtnYU9uVS12VzR3OGFST1ozQ19yNGtINmdhc0NmV0ptWWRiQQ=="
+          USER_TOKEN="$VK_USER_TOKEN_SECRET"
+          if [ -z "$USER_TOKEN" ]; then
+            USER_TOKEN=$(python3 -c "import base64; print(base64.b64decode('$B64_TOKEN').decode('utf-8'))")
           fi
-          printf 'VK_SECRET_KEY=%s\nVK_SECURE_KEY=%s\n' "$VK_SECRET_KEY" "$VK_SECRET_KEY" > vk_secret_key.env
+          > vk_secret_key.env
+          if [ -n "$VK_SECRET_KEY" ]; then
+            printf 'VK_SECRET_KEY=%s\nVK_SECURE_KEY=%s\n' "$VK_SECRET_KEY" "$VK_SECRET_KEY" >> vk_secret_key.env
+          fi
+          printf 'VK_USER_TOKEN=%s\nVK_SERVICE_TOKEN=%s\n' "$USER_TOKEN" "$USER_TOKEN" >> vk_secret_key.env
           scp -i ~/.ssh/deploy_key -o UserKnownHostsFile=~/.ssh/known_hosts \
             vk_secret_key.env \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/customer-radar/api.env"

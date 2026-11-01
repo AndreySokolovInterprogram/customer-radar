@@ -486,6 +486,17 @@
     margin-top: 2px;
   }
 
+  .target-preview {
+    font-size: 12px;
+    color: var(--ink-2);
+    margin-top: 4px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   /* Chips Input Component */
   .chips-input-container {
     background: var(--surface-2);
@@ -1268,11 +1279,12 @@
       </div>
 
       <!-- Карточка распознанного сообщества -->
-      <div class="target-profile-box">
+      <div class="target-profile-box" id="detected-group-card">
         <img src="" id="target-group-avatar" class="target-avatar" alt="Группа">
         <div class="target-info">
           <div class="target-name" id="target-group-name">—</div>
           <div class="target-meta" id="target-group-meta">—</div>
+          <div class="target-preview" id="target-group-preview" style="display:none;"></div>
         </div>
       </div>
 
@@ -1309,7 +1321,7 @@
     <!-- Индикатор загрузки классификации -->
     <div class="card-box loading-box" id="classify-loading-block" style="display:none;">
       <div class="spinner"></div>
-      <div class="loading-text">ИИ-классификация конкурентов на CPU...</div>
+      <div class="loading-text">Поиск реальных сообществ во ВКонтакте и ИИ-отбор конкурентов...</div>
       <div class="loading-sub">Вычисляем семантические эмбеддинги и фильтруем информационный шум</div>
     </div>
 
@@ -1853,8 +1865,12 @@
         name: res.group_name,
         screen_name: res.screen_name,
         photo_100: res.photo_100,
-        members_count: res.members_count
+        members_count: res.members_count,
+        activity: '',
+        status: '',
+        description: ''
       };
+      state.groupName = res.group_name;
       var detectedSlug = res.screen_name || (state.targetGroup && state.targetGroup.screen_name);
       if (!presetKey && detectedSlug && ['dodo', 'alexfitness', 'fitauto'].indexOf(detectedSlug) !== -1) {
         state.presetKey = detectedSlug;
@@ -1873,11 +1889,47 @@
   function renderConfirmedState() {
     detectConfirmedBlock.style.display = 'block';
 
-    targetGroupAvatar.src = state.targetGroup.photo_100 || '';
-    targetGroupName.textContent = state.targetGroup.name || 'Сообщество ВКонтакте';
-    targetGroupMeta.textContent =
-      (state.detectedCity ? 'г. ' + state.detectedCity + ' · ' : '') +
-      formatNumber(state.targetGroup.members_count) + ' подписчиков';
+    var tg = state.targetGroup || {};
+    var gname = tg.name || state.groupName || 'Сообщество ВКонтакте';
+    targetGroupName.textContent = gname;
+
+    var makeFallbackAvatar = function () {
+      var initials = (gname.split(/\s+/).slice(0, 2).map(function (w) { return w[0] || ''; }).join('') || 'ВК').toUpperCase();
+      return "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' rx='50' fill='%232688EB'/><text x='50' y='58' font-size='32' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>" + initials.slice(0, 2) + "</text></svg>";
+    };
+
+    targetGroupAvatar.onerror = function () {
+      this.onerror = null;
+      this.src = makeFallbackAvatar();
+    };
+    targetGroupAvatar.src = tg.photo_100 || makeFallbackAvatar();
+
+    var metaParts = [];
+    if (state.detectedCity) {
+      metaParts.push('г. ' + state.detectedCity);
+    }
+    if (tg.members_count) {
+      metaParts.push(formatNumber(tg.members_count) + ' подписчиков');
+    }
+    if (tg.activity) {
+      metaParts.push(tg.activity);
+    }
+    targetGroupMeta.textContent = metaParts.join(' · ') || 'Сообщество ВКонтакте';
+
+    // Краткое превью описания или категории сообщества
+    var targetGroupPreview = document.getElementById('target-group-preview');
+    if (targetGroupPreview) {
+      var previewText = tg.description || tg.status || '';
+      if (previewText) {
+        if (previewText.length > 200) {
+          previewText = previewText.slice(0, 200).trim() + '...';
+        }
+        targetGroupPreview.textContent = previewText;
+        targetGroupPreview.style.display = 'block';
+      } else {
+        targetGroupPreview.style.display = 'none';
+      }
+    }
 
     nicheTitleInput.value = state.nicheTitle;
     renderKeywordsChips();
@@ -1925,6 +1977,11 @@
   function runClassification(useFeedback) {
     classifyLoadingBlock.style.display = 'flex';
     resultsContentWrap.style.display = 'none';
+
+    var loadingTitle = classifyLoadingBlock.querySelector('.loading-text');
+    if (loadingTitle) {
+      loadingTitle.textContent = 'Поиск реальных сообществ во ВКонтакте и ИИ-отбор конкурентов...';
+    }
 
     var feedbackArray = [];
     if (useFeedback) {
