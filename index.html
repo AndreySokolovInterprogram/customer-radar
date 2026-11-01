@@ -1772,11 +1772,28 @@
         if (storageData && storageData.keys) {
           storageData.keys.forEach(function (entry) {
             if (entry.key === 'neurokont_saved_reports_v2' && entry.value && entry.value !== '[]') {
-              if (!localStorage.getItem('neurokont_saved_reports_v2')) {
-                localStorage.setItem('neurokont_saved_reports_v2', entry.value);
-                updateSavedCounter();
-                if (state.currentView === 'saved') renderSavedReportsList();
-              }
+              try {
+                var cloudReports = JSON.parse(entry.value);
+                if (Array.isArray(cloudReports) && cloudReports.length > 0) {
+                  var localReports = getSavedReports();
+                  var localMap = {};
+                  localReports.forEach(function (lr) {
+                    if (lr && lr.id) localMap[lr.id] = lr;
+                  });
+
+                  var merged = localReports.slice();
+                  cloudReports.forEach(function (cr) {
+                    if (cr && cr.id && !localMap[cr.id]) {
+                      merged.push(cr);
+                      localMap[cr.id] = cr;
+                    }
+                  });
+
+                  localStorage.setItem('neurokont_saved_reports_v2', JSON.stringify(merged));
+                  updateSavedCounter();
+                  if (state.currentView === 'saved') renderSavedReportsList();
+                }
+              } catch (parseErr) {}
             }
             if (entry.key === 'neurokont_onboarding_v2' && entry.value === 'true') {
               if (!localStorage.getItem('neurokont_onboarding_v2')) {
@@ -2193,7 +2210,7 @@
       var statusText = group.is_closed === 1 ? 'Закрытая группа' : 'Открытая группа';
 
       card.innerHTML =
-        '<input type="checkbox" class="card-checkbox" data-id="' + group.id + '" ' + isChecked + '>' +
+        '<input type="checkbox" class="card-checkbox card-export-checkbox" data-id="' + group.id + '" ' + isChecked + '>' +
         '<img src="' + escapeHtml(group.photo_100 || '') + '" class="card-avatar" alt="">' +
         '<div class="card-body">' +
           '<div class="card-header-row">' +
@@ -2266,50 +2283,117 @@
   }
 
   // ========================================================
-  // 9. БИЗНЕС-ДЕЙСТВИЯ: ЭКСПОРТ ДЛЯ ТАРГЕТА И CSV
+  // 9. БИЗНЕС-ДЕЙСТВИЯ: ЭКСПОРТ ДЛЯ ТАРГЕТА, CSV И ШАРИНГ
   // ========================================================
-  function copyTargetIds() {
-    var ids = Array.from(state.selectedIds);
-    if (ids.length === 0) {
-      showToast('Выберите хотя бы одно сообщество для экспорта');
-      return;
+
+  /**
+   * Трёхуровневый универсальный механизм копирования в буфер обмена:
+   * 1. Синхронный DOM-фоллбэк через невидимый textarea (работает в рамках стека клика во всех WebView);
+   * 2. Нативный VK Bridge (VKWebAppCopyText для мобильных клиентов ВК);
+   * 3. Стандартный Clipboard API браузера (navigator.clipboard.writeText).
+   */
+  function copyTextToClipboard(text) {
+    if (text === null || text === undefined) return false;
+    var success = false;
+
+    // Уровень 1: Синхронный DOM fallback через невидимый <textarea>
+    try {
+      var textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.setAttribute('readonly', '');
+      textArea.style.position = 'fixed';
+      textArea.style.top = '-9999px';
+      textArea.style.left = '-9999px';
+      textArea.style.opacity = '0';
+      textArea.style.pointerEvents = 'none';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      if (textArea.setSelectionRange) {
+        textArea.setSelectionRange(0, textArea.value.length);
+      }
+      success = document.execCommand('copy');
+      document.body.removeChild(textArea);
+    } catch (domErr) {
+      success = false;
     }
 
-    var text = ids.join('\n');
-    var successMsg = 'Скопировано ' + ids.length + ' ID сообществ для кабинета таргета ВК';
-
-    if (typeof vkBridge !== 'undefined') {
-      vkBridge.send('VKWebAppCopyText', { text: text }).then(function () {
-        showToast(successMsg);
-      }).catch(function () {
-        fallbackCopyText(text, successMsg);
-      });
-    } else {
-      fallbackCopyText(text, successMsg);
+    // Уровень 2: Нативный метод VK Bridge
+    if (typeof vkBridge !== 'undefined' && vkBridge.send) {
+      try {
+        vkBridge.send('VKWebAppCopyText', { text: text }).catch(function () {});
+      } catch (bridgeErr) {}
     }
+
+    // Уровень 3: Clipboard API браузера
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        navigator.clipboard.writeText(text).catch(function () {});
+      } catch (clipErr) {}
+    }
+
+    return success;
   }
 
   function fallbackCopyText(text, msg) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        showToast(msg);
-      }).catch(function () {
-        showToast('Не удалось скопировать в буфер обмена');
-      });
+    copyTextToClipboard(text);
+    if (msg) showToast(msg);
+  }
+
+  function copyTargetIds() {
+    var ids = [];
+    var isFromSelection = false;
+
+    if (state.selectedIds && state.selectedIds.size > 0) {
+      ids = Array.from(state.selectedIds);
+      isFromSelection = true;
+    } else if (state.filteredResults && state.filteredResults.length > 0) {
+      ids = state.filteredResults.map(function (g) { return g.id; });
+      isFromSelection = false;
+    } else if (state.classifiedResults && state.classifiedResults.length > 0) {
+      ids = state.classifiedResults.map(function (g) { return g.id; });
+      isFromSelection = false;
+    }
+
+    if (ids.length === 0) {
+      showToast('Нет сообществ для копирования ID');
+      return;
+    }
+
+    // Чистый список ID по одному на строке для кабинета таргета и парсеров ВК
+    var text = ids.map(function (id) {
+      return String(id).replace(/^club/i, '').replace(/^-/, '').trim();
+    }).filter(Boolean).join('\n');
+
+    copyTextToClipboard(text);
+
+    // Временная смена текста кнопки на 2 секунды
+    var btn = document.getElementById('btn-export-ids');
+    if (btn) {
+      var origHtml = btn.innerHTML;
+      btn.innerHTML = '<span>✓ Скопировано (' + ids.length + ' ID)</span>';
+      setTimeout(function () {
+        btn.innerHTML = origHtml;
+      }, 2000);
+    }
+
+    if (isFromSelection) {
+      showToast('Скопировано ' + ids.length + ' ID сообществ в буфер обмена!');
     } else {
-      showToast(msg);
+      showToast('Скопированы все ' + ids.length + ' отфильтрованных ID (галочки не были выбраны)');
     }
   }
 
   function downloadCsv() {
-    if (state.classifiedResults.length === 0) {
+    var sourceList = state.classifiedResults || [];
+    if (sourceList.length === 0) {
       showToast('Нет данных для скачивания');
       return;
     }
 
     var rows = [['ID', 'Название', 'Короткое имя', 'Город', 'Подписчики', 'Скор_ИИ', 'Сегмент', 'Ссылка']];
 
-    state.classifiedResults.forEach(function (g) {
+    sourceList.forEach(function (g) {
       if (state.selectedIds.has(g.id)) {
         rows.push([
           g.id,
@@ -2324,6 +2408,22 @@
       }
     });
 
+    // Если галочки сняты, но есть отфильтрованные результаты, выгружаем их
+    if (rows.length === 1 && state.filteredResults && state.filteredResults.length > 0) {
+      state.filteredResults.forEach(function (g) {
+        rows.push([
+          g.id,
+          '"' + (g.name || '').replace(/"/g, '""') + '"',
+          g.screen_name || '',
+          '"' + (g.city_title || '').replace(/"/g, '""') + '"',
+          g.members_count || 0,
+          g.lstm_score,
+          '"' + (g.segment_tag || '') + '"',
+          'https://vk.com/' + (g.screen_name || ('club' + g.id))
+        ]);
+      });
+    }
+
     var csvContent = '\uFEFF' + rows.map(function (e) { return e.join(';'); }).join('\n');
     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     var url = URL.createObjectURL(blob);
@@ -2333,7 +2433,111 @@
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('Файл competitors_export.csv сформирован');
+    showToast('Файл competitors_export.csv сформирован (' + (rows.length - 1) + ' сообществ)');
+  }
+
+  function generateShareSummaryText() {
+    var shareUrl = 'https://vk.com/app54674554';
+    var hasResults = state.classifiedResults && state.classifiedResults.length > 0;
+
+    if (!hasResults && !state.targetGroup) {
+      return '📊 «НейроКонт / Проект Маркли» — ИИ-радар конкурентов ВКонтакте\n' +
+        'Быстрый поиск и семантический отбор сообществ-конкурентов с помощью нейросетей.\n' +
+        'Ссылка на сервис: ' + shareUrl;
+    }
+
+    var groupName = (state.targetGroup && state.targetGroup.name) || state.groupName || 'Сообщество ВКонтакте';
+    var niche = (nicheTitleInput ? nicheTitleInput.value.trim() : '') || state.nicheTitle || 'Анализ ниши';
+    var city = state.detectedCity ? ' (' + state.detectedCity + ')' : '';
+    var kwList = (state.keywords && state.keywords.length > 0)
+      ? state.keywords.slice(0, 6).join(', ')
+      : 'Общий поиск';
+
+    var relevantCount = (state.metrics && state.metrics.relevant !== undefined)
+      ? state.metrics.relevant
+      : (state.filteredResults ? state.filteredResults.length : 0);
+
+    var topList = (state.filteredResults && state.filteredResults.length > 0)
+      ? state.filteredResults
+      : (state.classifiedResults || []);
+    var top3 = topList.slice(0, 3).map(function (g) {
+      var pct = Math.round((g.lstm_score || 0) * 100);
+      return g.name + ' (' + pct + '%)';
+    });
+    var top3Str = top3.length > 0 ? ' (топ-3: ' + top3.join(', ') + ')' : '';
+
+    return '📊 ИИ-анализ конкурентов в «НейроКонт»\n' +
+      'Целевая группа: ' + groupName + '\n' +
+      'Ниша: ' + niche + city + '\n' +
+      'Ключевые запросы: ' + kwList + '\n' +
+      'Найдено релевантных конкурентов: ' + relevantCount + top3Str + '\n' +
+      'Ссылка на сервис: ' + shareUrl;
+  }
+
+  function shareCurrentReport() {
+    var shareUrl = 'https://vk.com/app54674554';
+    var shareSummaryText = generateShareSummaryText();
+    var btn = document.getElementById('btn-share-app');
+
+    var setCopiedButtonState = function () {
+      if (btn) {
+        var origHtml = btn.innerHTML;
+        btn.innerHTML = '<span>✓ Сводка скопирована</span>';
+        setTimeout(function () {
+          btn.innerHTML = origHtml;
+        }, 2000);
+      }
+    };
+
+    var setSharedButtonState = function () {
+      if (btn) {
+        var origHtml = btn.innerHTML;
+        btn.innerHTML = '<span>✓ Поделились!</span>';
+        setTimeout(function () {
+          btn.innerHTML = origHtml;
+        }, 2000);
+      }
+    };
+
+    // Проверяем, запущено ли приложение реально внутри ВКонтакте
+    var isInsideVk = (window.location.search.indexOf('vk_app_id') !== -1 || window.location.search.indexOf('vk_user_id') !== -1);
+
+    if (isInsideVk && typeof vkBridge !== 'undefined' && vkBridge.send) {
+      // Сценарий 1: Запущено внутри ВК и есть vkBridge
+      vkBridge.send('VKWebAppShare', { link: shareUrl })
+        .then(function () {
+          setSharedButtonState();
+          showToast('Отчёт успешно отправлен!');
+        })
+        .catch(function () {
+          // Пользователь закрыл окно или VKWebAppShare вернул ошибку
+          copyTextToClipboard(shareSummaryText);
+          setCopiedButtonState();
+          showToast('Сводка отчёта и ссылка скопированы в буфер обмена!');
+        });
+    } else {
+      // Сценарий 2: Открыто в мобильном/десктопном браузере вне ВК
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        navigator.share({
+          title: 'НейроКонт — ИИ-радар конкурентов',
+          text: shareSummaryText,
+          url: shareUrl
+        }).then(function () {
+          setCopiedButtonState();
+          showToast('Сводка отчёта и ссылка отправлены!');
+        }).catch(function () {
+          // Если отклонено или сбой — копируем в буфер обмена
+          copyTextToClipboard(shareSummaryText);
+          setCopiedButtonState();
+          showToast('Сводка отчёта и ссылка скопированы в буфер обмена — отправьте их коллегам!');
+        });
+      } else {
+        // Нет поддержки navigator.share: сразу копируем в буфер обмена
+        copyTextToClipboard(shareSummaryText);
+        setCopiedButtonState();
+        showToast('Сводка отчёта и ссылка скопированы в буфер обмена — отправьте их коллегам!');
+      }
+    }
   }
 
   // ========================================================
@@ -2347,38 +2551,253 @@
     }
   }
 
+  function makeCompactStoragePayload(fullReportsList) {
+    if (!Array.isArray(fullReportsList) || fullReportsList.length === 0) {
+      return '[]';
+    }
+    // Лимит VKWebAppStorageSet: максимум 4096 байт на значение
+    var compact = fullReportsList.slice(0, 5).map(function (item) {
+      return {
+        id: item.id,
+        saved_at: item.saved_at,
+        niche_title: item.niche_title,
+        detected_city: item.detected_city || '',
+        preset_key: item.preset_key || null,
+        target_group: item.target_group ? {
+          id: item.target_group.id,
+          name: item.target_group.name,
+          screen_name: item.target_group.screen_name || '',
+          photo_100: item.target_group.photo_100 || '',
+          members_count: item.target_group.members_count || 0
+        } : null,
+        keywords: (item.keywords || []).slice(0, 6),
+        summary_stats: item.summary_stats || null,
+        selected_ids: (item.selected_ids || []).slice(0, 25),
+        filters: item.filters || null
+      };
+    });
+
+    var json = JSON.stringify(compact);
+    if (json.length > 3800) {
+      compact = compact.slice(0, 2);
+      json = JSON.stringify(compact);
+    }
+    return json;
+  }
+
   function saveCurrentReport() {
-    if (!state.targetGroup || state.classifiedResults.length === 0) {
-      showToast('Сначала выполните классификацию конкурентов');
+    if (!state.targetGroup && (!state.classifiedResults || state.classifiedResults.length === 0)) {
+      showToast('Сначала выполните поиск и классификацию конкурентов');
+      return;
+    }
+    if (!state.classifiedResults || state.classifiedResults.length === 0) {
+      showToast('Сначала дождитесь результатов классификации конкурентов');
       return;
     }
 
     var list = getSavedReports();
+    var currentNiche = (nicheTitleInput ? nicheTitleInput.value.trim() : '') || state.nicheTitle || 'Подборка конкурентов';
+
+    var targetGroupSnapshot = null;
+    if (state.targetGroup) {
+      targetGroupSnapshot = {
+        id: state.targetGroup.id,
+        name: state.targetGroup.name || state.groupName || 'Сообщество ВКонтакте',
+        screen_name: state.targetGroup.screen_name || '',
+        photo_100: state.targetGroup.photo_100 || '',
+        members_count: state.targetGroup.members_count || 0,
+        activity: state.targetGroup.activity || '',
+        description: state.targetGroup.description || '',
+        city_title: state.targetGroup.city_title || (state.targetGroup.city ? state.targetGroup.city.title : '') || ''
+      };
+    }
+
+    var classifiedSnapshot = (state.classifiedResults || []).map(function (g) {
+      return {
+        id: g.id,
+        name: g.name || '',
+        screen_name: g.screen_name || '',
+        photo_100: g.photo_100 || '',
+        activity: g.activity || '',
+        description: g.description || '',
+        members_count: g.members_count || 0,
+        city_title: g.city_title || '',
+        is_closed: g.is_closed !== undefined ? g.is_closed : 0,
+        verified: g.verified !== undefined ? g.verified : 0,
+        lstm_score: g.lstm_score !== undefined ? g.lstm_score : 0,
+        segment_tag: g.segment_tag || ''
+      };
+    });
+
+    var uncertainSnapshot = (state.uncertainCandidates || []).map(function (g) {
+      return {
+        id: g.id,
+        name: g.name || '',
+        screen_name: g.screen_name || '',
+        photo_100: g.photo_100 || '',
+        activity: g.activity || '',
+        description: g.description || '',
+        members_count: g.members_count || 0,
+        city_title: g.city_title || '',
+        is_closed: g.is_closed !== undefined ? g.is_closed : 0,
+        verified: g.verified !== undefined ? g.verified : 0,
+        lstm_score: g.lstm_score !== undefined ? g.lstm_score : 0,
+        segment_tag: g.segment_tag || ''
+      };
+    });
+
+    var filtersSnapshot = {
+      members: filterMembers ? filterMembers.value : 'all',
+      score: filterScore ? filterScore.value : 'relevant',
+      city: filterCity ? filterCity.value : 'all',
+      openOnly: filterOpenOnly ? filterOpenOnly.checked : true,
+      sortBy: sortSelector ? sortSelector.value : 'score_desc'
+    };
+
     var reportItem = {
       id: 'rep_' + Date.now(),
-      target_group: state.targetGroup,
-      niche_title: state.nicheTitle,
-      detected_city: state.detectedCity,
-      keywords: state.keywords,
-      preset_key: state.presetKey,
-      total_checked: state.metrics.total,
-      relevant_count: state.metrics.relevant,
-      saved_at: new Date().toLocaleDateString('ru-RU')
+      saved_at: new Date().toLocaleString('ru-RU'),
+      target_group: targetGroupSnapshot,
+      preset_key: state.presetKey || null,
+      niche_title: currentNiche,
+      detected_city: state.detectedCity || '',
+      keywords: Array.isArray(state.keywords) ? state.keywords.slice() : [],
+      active_learning_feedback: Object.assign({}, state.activeLearningFeedback || {}),
+      summary_stats: {
+        total_checked: (state.metrics && state.metrics.total) ? state.metrics.total : classifiedSnapshot.length,
+        relevant_count: (state.metrics && state.metrics.relevant) ? state.metrics.relevant : classifiedSnapshot.length,
+        noise_filtered: (state.metrics && state.metrics.noise) ? state.metrics.noise : 0
+      },
+      uncertain_groups: uncertainSnapshot,
+      classified_results: classifiedSnapshot,
+      selected_ids: Array.from(state.selectedIds || []),
+      filters: filtersSnapshot
     };
 
     list.unshift(reportItem);
+
     try {
       localStorage.setItem('neurokont_saved_reports_v2', JSON.stringify(list));
-      if (typeof vkBridge !== 'undefined') {
+      if (typeof vkBridge !== 'undefined' && vkBridge.send) {
         vkBridge.send('VKWebAppStorageSet', {
           key: 'neurokont_saved_reports_v2',
-          value: JSON.stringify(list.slice(0, 5))
+          value: makeCompactStoragePayload(list)
         }).catch(function () {});
       }
-    } catch (e) {}
+    } catch (storageErr) {
+      console.error('Ошибка сохранения отчета:', storageErr);
+    }
 
     updateSavedCounter();
-    showToast('Подборка сохранена в «Мои подборки»');
+
+    // Временная визуальная индикация на кнопке сохранения
+    var btnSave = document.getElementById('btn-save-collection');
+    if (btnSave) {
+      var origHtml = btnSave.innerHTML;
+      btnSave.innerHTML = '<span>✓ Сохранено!</span>';
+      setTimeout(function () {
+        btnSave.innerHTML = origHtml;
+      }, 2000);
+    }
+
+    showToast('Подборка «' + currentNiche + '» сохранена в «Мои подборки»!');
+  }
+
+  function restoreSavedReport(reportId) {
+    var list = getSavedReports();
+    var item = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === reportId) {
+        item = list[i];
+        break;
+      }
+    }
+
+    if (!item) {
+      showToast('Сохранённая подборка не найдена');
+      return;
+    }
+
+    // Если это старый формат без сохраненных результатов, запускаем пересчёт
+    if ((!item.classified_results || item.classified_results.length === 0) && (item.target_group || item.preset_key)) {
+      showToast('Подборка старого формата: запускаем пересчёт данных...');
+      if (groupInputField && item.target_group) {
+        groupInputField.value = item.target_group.screen_name || ('club' + item.target_group.id);
+      }
+      runDetectNiche(groupInputField ? groupInputField.value : '', item.preset_key);
+      navigateTo('home');
+      return;
+    }
+
+    // 1. Мгновенное восстановление полного состояния в state (0 сетевых запросов)
+    state.targetGroup = item.target_group ? Object.assign({}, item.target_group) : null;
+    state.groupName = (item.target_group && item.target_group.name) || '';
+    state.presetKey = item.preset_key || null;
+    state.nicheTitle = item.niche_title || '';
+    state.detectedCity = item.detected_city || '';
+    state.keywords = Array.isArray(item.keywords) ? item.keywords.slice() : [];
+    state.activeLearningFeedback = Object.assign({}, item.active_learning_feedback || {});
+    state.classifiedResults = Array.isArray(item.classified_results) ? item.classified_results.slice() : [];
+    state.uncertainCandidates = Array.isArray(item.uncertain_groups || item.uncertainCandidates)
+      ? (item.uncertain_groups || item.uncertainCandidates).slice()
+      : [];
+
+    var stats = item.summary_stats || {};
+    state.metrics = {
+      total: stats.total_checked !== undefined ? stats.total_checked : (item.total_checked || state.classifiedResults.length),
+      relevant: stats.relevant_count !== undefined ? stats.relevant_count : (item.relevant_count || 0),
+      noise: stats.noise_filtered !== undefined ? stats.noise_filtered : (item.noise_filtered || 0)
+    };
+
+    // 2. Синхронизируем UI-элементы Экрана 1 на случай возврата
+    if (groupInputField && item.target_group) {
+      groupInputField.value = item.target_group.screen_name
+        ? ('https://vk.com/' + item.target_group.screen_name)
+        : (item.target_group.id ? ('https://vk.com/club' + item.target_group.id) : '');
+    }
+    if (nicheTitleInput) {
+      nicheTitleInput.value = state.nicheTitle;
+    }
+    if (state.targetGroup) {
+      renderConfirmedState();
+    }
+    renderKeywordsChips();
+
+    // 3. Восстанавливаем фильтры и сортировку дашборда
+    if (item.filters) {
+      if (filterMembers && item.filters.members) filterMembers.value = item.filters.members;
+      if (filterScore && item.filters.score) filterScore.value = item.filters.score;
+      if (filterCity && item.filters.city) filterCity.value = item.filters.city;
+      if (filterOpenOnly && item.filters.openOnly !== undefined) filterOpenOnly.checked = !!item.filters.openOnly;
+      if (sortSelector && (item.filters.sortBy || item.filters.sortMode)) {
+        sortSelector.value = item.filters.sortBy || item.filters.sortMode;
+      }
+    }
+
+    // 4. Отрисовываем сводную плашку и блок Active Learning
+    renderSummaryBanner();
+    renderActiveLearningBlock();
+
+    // Восстанавливаем в точности выбор галочек
+    if (Array.isArray(item.selected_ids)) {
+      state.selectedIds = new Set(item.selected_ids);
+    } else {
+      state.selectedIds = new Set(state.classifiedResults.map(function (g) { return g.id; }));
+    }
+
+    // Применяем фильтры и отрисовываем карточки (false = без сброса selectedIds)
+    applyFiltersAndRenderCompetitors(false);
+
+    var pill = document.getElementById('res-target-niche-pill');
+    if (pill) pill.textContent = 'Ниша: ' + (state.nicheTitle || 'Все');
+
+    if (classifyLoadingBlock) classifyLoadingBlock.style.display = 'none';
+    if (resultsContentWrap) resultsContentWrap.style.display = 'block';
+
+    // 5. Мгновенно переключаем экран на 'results'
+    navigateTo('results');
+    updateExportBar();
+    showToast('Открыта сохранённая подборка: ' + (item.niche_title || 'Без названия'));
   }
 
   function updateSavedCounter() {
@@ -2407,34 +2826,95 @@
     list.forEach(function (item, idx) {
       var card = document.createElement('div');
       card.className = 'card-box';
-      card.style.display = 'flex';
-      card.style.alignItems = 'center';
-      card.style.justifyContent = 'space-between';
-      card.style.gap = '12px';
+      card.style.marginBottom = '12px';
+
+      var targetName = item.target_group ? (item.target_group.name || 'Сообщество ВКонтакте') : 'Анализ ниши';
+      var relevantCount = (item.summary_stats && item.summary_stats.relevant_count !== undefined)
+        ? item.summary_stats.relevant_count
+        : (item.relevant_count !== undefined ? item.relevant_count : (item.classified_results ? item.classified_results.length : 0));
+      var selectedCount = Array.isArray(item.selected_ids) ? item.selected_ids.length : relevantCount;
+      var keywords = Array.isArray(item.keywords) ? item.keywords : [];
+      var keywordsCount = keywords.length;
+
+      var keywordsHtml = '';
+      if (keywords.length > 0) {
+        var chipsHtml = keywords.slice(0, 8).map(function (kw) {
+          return '<span class="tag-chip" style="font-size:11px; padding:2px 7px; background:var(--surface-2);">' + escapeHtml(kw) + '</span>';
+        }).join('');
+        var extraCount = keywords.length > 8 ? '<span style="font-size:11px; color:var(--muted); align-self:center;">+' + (keywords.length - 8) + ' ещё</span>' : '';
+        keywordsHtml = '<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; margin-bottom:10px;">' + chipsHtml + extraCount + '</div>';
+      }
+
+      var cityStr = item.detected_city ? ' · г. ' + escapeHtml(item.detected_city) : '';
 
       card.innerHTML =
-        '<div>' +
-          '<div style="font-size:14px; font-weight:700;">' + escapeHtml(item.niche_title) + '</div>' +
-          '<div style="font-size:12px; color:var(--muted); margin-top:2px;">' +
-            'Группа: ' + escapeHtml(item.target_group ? item.target_group.name : '—') + ' · ' +
-            'Отобрано: ' + item.relevant_count + ' · ' +
-            'Сохранено: ' + escapeHtml(item.saved_at) +
+        '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">' +
+          '<div>' +
+            '<div style="font-size:15px; font-weight:700; color:var(--ink);">' + escapeHtml(item.niche_title || 'Подборка конкурентов') + '</div>' +
+            '<div style="font-size:12px; color:var(--muted); margin-top:2px;">' +
+              'Группа: ' + escapeHtml(targetName) + cityStr + ' · ' +
+              escapeHtml(item.saved_at || '') +
+            '</div>' +
           '</div>' +
+          '<button type="button" class="btn-secondary btn-del-report" style="color:var(--danger); padding:4px 8px; font-size:13px;" title="Удалить подборку">✕</button>' +
         '</div>' +
-        '<div style="display:flex; gap:6px;">' +
-          '<button type="button" class="btn-secondary btn-open-report">Открыть</button>' +
-          '<button type="button" class="btn-secondary btn-del-report" style="color:var(--danger);">Удалить</button>' +
+        '<div style="font-size:12px; font-weight:600; color:var(--ink-2); margin-top:8px;">' +
+          'Отобрано: ' + formatNumber(relevantCount) + ' • Выбрано в экспорт: ' + formatNumber(selectedCount) + ' • Ключевых фраз: ' + keywordsCount +
+        '</div>' +
+        keywordsHtml +
+        '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">' +
+          '<button type="button" class="btn-primary btn-open-report" style="padding:7px 14px; font-size:13px;">' +
+            '<span>📂 Открыть отчёт</span>' +
+          '</button>' +
+          '<button type="button" class="btn-secondary btn-copy-card-ids" style="padding:7px 14px; font-size:13px;">' +
+            '<span>📋 Скопировать ID</span>' +
+          '</button>' +
         '</div>';
 
+      // Обработчик "Открыть отчёт" — мгновенное восстановление без сетевых запросов
       card.querySelector('.btn-open-report').addEventListener('click', function () {
-        groupInputField.value = item.target_group ? (item.target_group.screen_name || item.target_group.id) : '';
-        runDetectNiche(groupInputField.value, item.preset_key);
-        navigateTo('home');
+        restoreSavedReport(item.id);
       });
 
+      // Обработчик "Скопировать ID" прямо из карточки сохраненной подборки
+      var btnCopyCard = card.querySelector('.btn-copy-card-ids');
+      btnCopyCard.addEventListener('click', function () {
+        var idsToCopy = [];
+        if (Array.isArray(item.selected_ids) && item.selected_ids.length > 0) {
+          idsToCopy = item.selected_ids.slice();
+        } else if (Array.isArray(item.classified_results) && item.classified_results.length > 0) {
+          idsToCopy = item.classified_results.map(function (g) { return g.id; });
+        }
+        if (idsToCopy.length === 0) {
+          showToast('В этой подборке нет сохранённых ID сообществ');
+          return;
+        }
+        var text = idsToCopy.map(function (id) {
+          return String(id).replace(/^club/i, '').replace(/^-/, '').trim();
+        }).filter(Boolean).join('\n');
+
+        copyTextToClipboard(text);
+
+        var origHtml = btnCopyCard.innerHTML;
+        btnCopyCard.innerHTML = '<span>✓ Скопировано (' + idsToCopy.length + ')</span>';
+        setTimeout(function () {
+          btnCopyCard.innerHTML = origHtml;
+        }, 2000);
+        showToast('Скопировано ' + idsToCopy.length + ' ID сообществ из подборки!');
+      });
+
+      // Обработчик удаления
       card.querySelector('.btn-del-report').addEventListener('click', function () {
         var updated = getSavedReports().filter(function (_, i) { return i !== idx; });
         localStorage.setItem('neurokont_saved_reports_v2', JSON.stringify(updated));
+        if (typeof vkBridge !== 'undefined' && vkBridge.send) {
+          try {
+            vkBridge.send('VKWebAppStorageSet', {
+              key: 'neurokont_saved_reports_v2',
+              value: makeCompactStoragePayload(updated)
+            }).catch(function () {});
+          } catch (e) {}
+        }
         updateSavedCounter();
         renderSavedReportsList();
         showToast('Отчёт удален');
@@ -2575,21 +3055,13 @@
   document.getElementById('btn-download-csv').addEventListener('click', downloadCsv);
   document.getElementById('btn-save-collection').addEventListener('click', saveCurrentReport);
 
-  document.getElementById('btn-share-app').addEventListener('click', function () {
-    var shareUrl = 'https://vk.com/app54674554';
-    if (typeof vkBridge !== 'undefined') {
-      vkBridge.send('VKWebAppShare', { link: shareUrl }).catch(function () {
-        fallbackCopyText(shareUrl, 'Ссылка на приложение скопирована');
-      });
-    } else {
-      fallbackCopyText(shareUrl, 'Ссылка на приложение скопирована');
-    }
-  });
+  document.getElementById('btn-share-app').addEventListener('click', shareCurrentReport);
 
   // Копирование технического ID
   document.getElementById('btn-copy-tech-id').addEventListener('click', function () {
     var txt = document.getElementById('tech-id-box').textContent;
-    fallbackCopyText(txt, 'Диагностический ID скопирован');
+    copyTextToClipboard(txt);
+    showToast('Диагностический ID скопирован в буфер обмена');
   });
 
   // Онбординг
